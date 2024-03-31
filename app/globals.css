@@ -31,3 +31,13 @@ body {
     text-wrap: balance;
   }
 }
+/* Hide scrollbar but allow scrolling */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Optional: scrollbar styling for Firefox */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+}
+
