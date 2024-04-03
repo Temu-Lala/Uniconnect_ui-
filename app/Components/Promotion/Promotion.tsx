@@ -1,36 +1,29 @@
-import React from 'react'
+import React from 'react';
+import { Carousel } from 'antd';
 
-export default function Promotion() {
-  return (
-    <div><div className="carousel w-full">
-    <div id="slide1" className="carousel-item relative w-full">
-      <img src="https://daisyui.com/images/stock/photo-1625726411847-8cbb60cc71e6.jpg" className="w-full" />
-      <div className="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2">
-        <a href="#slide4" className="btn btn-circle">❮</a> 
-        <a href="#slide2" className="btn btn-circle">❯</a>
-      </div>
-    </div> 
-    <div id="slide2" className="carousel-item relative w-full">
-      <img src="https://daisyui.com/images/stock/photo-1609621838510-5ad474b7d25d.jpg" className="w-full" />
-      <div className="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2">
-        <a href="#slide1" className="btn btn-circle">❮</a> 
-        <a href="#slide3" className="btn btn-circle">❯</a>
-      </div>
-    </div> 
-    <div id="slide3" className="carousel-item relative w-full">
-      <img src="https://daisyui.com/images/stock/photo-1414694762283-acccc27bca85.jpg" className="w-full" />
-      <div className="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2">
-        <a href="#slide2" className="btn btn-circle">❮</a> 
-        <a href="#slide4" className="btn btn-circle">❯</a>
-      </div>
-    </div> 
-    <div id="slide4" className="carousel-item relative w-full">
-      <img src="https://daisyui.com/images/stock/photo-1665553365602-b2fb8e5d1707.jpg" className="w-full" />
-      <div className="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2">
-        <a href="#slide3" className="btn btn-circle">❮</a> 
-        <a href="#slide1" className="btn btn-circle">❯</a>
-      </div>
+const contentStyle: React.CSSProperties = {
+  height: '160px',
+  color: '#fff',
+  lineHeight: '160px',
+  textAlign: 'center',
+  background: '#364d79',
+};
+
+const App: React.FC = () => (
+  <Carousel autoplay>
+    <div>
+      <h3 style={contentStyle}>1</h3>
     </div>
-  </div></div>
-  )
-}
+    <div>
+      <h3 style={contentStyle}>2</h3>
+    </div>
+    <div>
+      <h3 style={contentStyle}>3</h3>
+    </div>
+    <div>
+      <h3 style={contentStyle}>4</h3>
+    </div>
+  </Carousel>
+);
+
+export default App;
