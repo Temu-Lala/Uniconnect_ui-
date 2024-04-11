@@ -1,11 +1,10 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaWindowClose } from "react-icons/fa";
 import { FaLinkedin } from "react-icons/fa";
 import { FaPhoneAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
-
-
+import axios from 'axios';
 
 interface Row {
   id: number;
@@ -44,80 +43,27 @@ interface Row {
   project_description1 : string;
   project2: string;
   project_description2 : string;
-
   project3: string;
   project_description3 : string;
-
-
-  
-
-
-
-
-
-
-
-
-
-
 }
 
 export default function Page() {
-  const [data] = useState<Row[]>([
-    {
-      id: 1,
-      avatar: "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      name: " Temesgen Teshome",
-      department: "Software Enginering",
-      location: "Debrebrhan",
-      jobTitle: "Lecturer",
-      skills1 :" Html",
-      skills2 :"Css ",
-      skills3 :"JS",
-      skills4 :"React",
-      About :"To get a career opportunity which would help me to utilize my academic background to assist me to gain experience, employ my excellent skills, and enable me to make positive contribution.",
-      phone : +251914490662,
-      likedin : "https/linkedin.com",
-      email : "lala@gmail.com",
-      education_background: "(INFORMATION TECHNOLOGY)",
-      background_description : "A platform to sell as well as to buy used books only for PCCoE College due to this reuse of books wi",
-      
-    
-
-      education_background2: "HSC, RAJARSHI SHAHU COLLEGE, LATUR",
-      background_description2 : "A platform to sell as well as to buy used books only for PCCoE College due to this reuse of books wi",
-      education_background3: "SSC, DNYANESHWAR HIGH SCHOOL, LATUR",
-      background_description3 : "A platform to sell as well as to buy used books only for PCCoE College due to this reuse of books wi",
-      languages : "English",
-      languages2 : "Amharic",
-      languages3 : " oromifa",
-      professional_experience: "software development at dbu ",
-      professional_experience2: "software development at dbu ",
-      professional_experience3: "software development at dbu ",
-      key_responsibilities : "software development at dbu ",
-      key_responsibilities2 : "software development at dbu ",
-      key_responsibilities3 : "software development at dbu ",
-    
-    
-      project1: " dbu student info",
-      project_description1 : " best description ",
-      project2: " dbu lecter ui ",
-      project_description2 : " best description ",
-
-      project3: " serche alakm ",
-      project_description3 : " best description ",
-
-    
-      
-    
-     
-    },
-  
-  ]);
-
-  const topThreeRows = data.slice(0, 10);
+  const [data, setData] = useState<Row[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState<Row | null>(null);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/lecturer-cvs/');
+      setData(response.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   const openModal = (row: Row) => {
     setSelectedRow(row);
@@ -145,7 +91,7 @@ export default function Page() {
           </tr>
         </thead>
         <tbody>
-          {topThreeRows.map((row) => (
+          {data.map((row) => (
             <tr key={row.id}>
               <th>
                 <label>
@@ -156,7 +102,7 @@ export default function Page() {
                 <div className="flex items-center gap-3">
                   <div className="avatar">
                     <div className="mask mask-squircle w-12 h-12">
-                      <img src={row.avatar} alt="Avatar" />
+                    <img src={row.avatar} alt="Avatar" className="img-fluid rounded-circle profile-img" />
                     </div>
                   </div>
                   <div>
@@ -183,23 +129,18 @@ export default function Page() {
               <button className="w-12 h-12" onClick={closeModal}><FaWindowClose className="w-6 h-6 bg-red-600 text-black" /></button>
             </div>
             <div className=" flex border ">
-
-<div className="border-1 shadow-lg shadow-gray-700 rounded-lg">
-
-    <div className="flex rounded-t-lg bg-top-color sm:px-2">
-        <div className="h-40 w-40 overflow-hidden sm:rounded-full sm:relative sm:p-0 top-10 left-5 p-3">
-            <img src={selectedRow.avatar}/>
-        </div>
-
-        <div className="w-2/3 sm:text-center pl-5 mt-10 text-start">
-            <p className="font-poppins font-bold text-heading sm:text-4xl text-2xl">
-            {selectedRow.name}
-            </p>
-            <p className="text-heading">{selectedRow.department}</p>
-        </div>
-
-    </div>
-
+              <div className="border-1 shadow-lg shadow-gray-700 rounded-lg">
+                <div className="flex rounded-t-lg bg-top-color sm:px-2">
+                  <div className="h-40 w-40 overflow-hidden sm:rounded-full sm:relative sm:p-0 top-10 left-5 p-3">
+                  <img src={selectedRow.avatar} alt="Avatar" className="img-fluid w-full h-full rounded-circle profile-img" />
+                  </div>
+                  <div className="w-2/3 sm:text-center pl-5 mt-10 text-start">
+                    <p className="font-poppins font-bold text-heading sm:text-4xl text-2xl">
+                      {selectedRow.name}
+                    </p>
+                    <p className="text-heading">{selectedRow.department}</p>
+                  </div>
+                </div>
     <div className="p-5">
 
         <div className="flex flex-col sm:flex-row sm:mt-10">

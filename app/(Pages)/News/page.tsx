@@ -1,9 +1,9 @@
-// Lala Dont forget to chenge the image into next Image 
 'use client'; 
-import React, { useState,ChangeEvent  } from 'react';
-import { FaUser, FaThumbsUp, FaThumbsDown, FaComment, FaShare } from 'react-icons/fa';
-import  Avater from '../../Components/Avater/Avater'
+import React, { useState, useEffect, ChangeEvent } from 'react';
+import { FaThumbsUp, FaThumbsDown, FaShare } from 'react-icons/fa';
+import Avater from '../../Components/Avater/Avater';
 import ThemeController from '@/app/Components/ThemController/ThemController';
+
 interface NewsItem {
   id: number;
   name: string;
@@ -12,181 +12,173 @@ interface NewsItem {
   imageUrls: string[];
   likes: number;
   dislikes: number;
-  comments: { id: number; text: string; avatar: string }[];
   shares: number;
   owner: string;
   showAllComments: boolean;
   liked: boolean;
   disliked: boolean;
+  comments: { id: number; text: string; avatar: string }[];
 }
 
 const NewsFeed = () => {
   const [newComment, setNewComment] = useState('');
-  const [newsItems, setNewsItems] = useState<NewsItem[]>([
-    {
-      id: 1,
-      name:"Temesgen Debebe",
-      title: "Scientists Discover New Exoplanet With Potential for Life",
-      date: "March 25, 2024",
-      imageUrls: [
-        "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        "https://via.placeholder.com/150",
-      ],
-      likes: 23,
-      dislikes: 0,
-      comments: [
-        { id: 1, text: "Amazing discovery!", avatar: "https://via.placeholder.com/50" },
-        { id: 2, text: "Can't wait for more details!", avatar: "https://via.placeholder.com/50" },
-      ],
-      shares: 10,
-      owner: "John Doe",
-      showAllComments: false,
-      liked: false,
-      disliked: false,
-    },
-    {
-      id: 2,
-      name:"Temesgen Debebe",
-      title: "AI Breakthrough: Robot Solves Rubik's Cube in Record Time",
-      date: "March 24, 2024",
-      imageUrls: [
-        "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      ],
-      likes: 17,
-      dislikes: 0,
-      comments: [
-        { id: 1, text: "Incredible technology!", avatar: "https://via.placeholder.com/50" },
-        { id: 2, text: "This is the future!", avatar: "https://via.placeholder.com/50" },
-      ],
-      shares: 8,
-      owner: "Jane Smith",
-      showAllComments: false,
-      liked: false,
-      disliked: false,
-    },
-  ]);
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
 
+  useEffect(() => {
+    fetchNewsFeed();
+  }, []);
 
+  const fetchNewsFeed = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/posts/');
+      if (!response.ok) {
+        throw new Error('Failed to fetch news feed');
+      }
+      const data = await response.json();
+      const formattedData = await Promise.all(data.map(async (item: any) => {
+        const commentsResponse = await fetch(`http://127.0.0.1:8000/comments/?post=${item.id}`);
+        if (!commentsResponse.ok) {
+          throw new Error(`Failed to fetch comments for post ${item.id}`);
+        }
+        const commentsData = await commentsResponse.json();
+        return {
+          id: item.id,
+          name: item.owner,
+          title: item.content,
+          date: item.created_at,
+          imageUrls: [item.file],
+          likes: item.likes,
+          dislikes: item.dislikes,
+          shares: item.shares,
+          owner: item.owner,
+          showAllComments: false,
+          liked: false,
+          disliked: false,
+          comments: commentsData,
+        };
+      }));
+      setNewsItems(formattedData);
+    } catch (error) {
+      console.error('Error fetching news feed:', error.message);
+    }
+  };
+  
   const handleCommentChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setNewComment(e.target.value);
   };
 
-  const handleCommentSubmit = (itemId: number) => {
-    if (newComment.trim() !== '') {
-      const updatedNewsItems = newsItems.map((item) => {
-        if (item.id === itemId) {
-          return {
-            ...item,
-            comments: [
-              ...item.comments,
-              { id: item.comments.length + 1, text: newComment, avatar: "https://via.placeholder.com/50" },
-            ],
-          };
+  const handleCommentSubmit = async (postId: number) => {
+    try {
+      if (newComment.trim() !== '') {
+        const response = await fetch('http://127.0.0.1:8000/add-comment/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ postId: postId, commentText: newComment }), // Include postId in the request body
+        });
+        if (!response.ok) {
+          throw new Error('Failed to add comment');
         }
-        return item;
+        const data = await response.json();
+        setNewsItems((prevItems) =>
+          prevItems.map((item) => (item.id === postId ? { ...item, comments: [...item.comments, data] } : item))
+        );
+        setNewComment('');
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error.message);
+    }
+  };
+  
+
+  const handleLike = async (postId: number) => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/like-post/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ postId }),
       });
-      setNewsItems(updatedNewsItems);
-      setNewComment('');
+      if (!response.ok) {
+        throw new Error('Failed to like post');
+      }
+      const data = await response.json();
+      setNewsItems((prevItems) =>
+        prevItems.map((item) => (item.id === postId ? data : item))
+      );
+    } catch (error) {
+      console.error('Error liking post:', error.message);
     }
   };
 
-  const handleLike = (itemId: number) => {
-    const updatedNewsItems = newsItems.map((item) => {
-      if (item.id === itemId) {
-        if (!item.liked) {
-          return {
-            ...item,
-            likes: item.likes + 1,
-            liked: true,
-            disliked: false,
-            dislikes: item.dislikes > 0 ? item.dislikes - 1 : 0,
-          };
-        } else {
-          return {
-            ...item,
-            likes: item.likes - 1,
-            liked: false,
-          };
-        }
+  const handleDislike = async (postId: number) => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/dislike-post/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ postId }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to dislike post');
       }
-      return item;
-    });
-    setNewsItems(updatedNewsItems);
+      const data = await response.json();
+      setNewsItems((prevItems) =>
+        prevItems.map((item) => (item.id === postId ? data : item))
+      );
+    } catch (error) {
+      console.error('Error disliking post:', error.message);
+    }
   };
 
-  const handleDislike = (itemId: number) => {
-    const updatedNewsItems = newsItems.map((item) => {
-      if (item.id === itemId) {
-        if (!item.disliked) {
-          return {
-            ...item,
-            dislikes: item.dislikes + 1,
-            disliked: true,
-            liked: false,
-            likes: item.likes > 0 ? item.likes - 1 : 0,
-          };
-        } else {
-          return {
-            ...item,
-            dislikes: item.dislikes - 1,
-            disliked: false,
-          };
-        }
-      }
-      return item;
-    });
-    setNewsItems(updatedNewsItems);
-  };
-
-  const toggleCommentsVisibility = (itemId: number) => {
-    const updatedNewsItems = newsItems.map((item) => {
-      if (item.id === itemId) {
-        return {
-          ...item,
-          showAllComments: !item.showAllComments,
-        };
-      }
-      return item;
-    });
-    setNewsItems(updatedNewsItems);
+  const toggleCommentsVisibility = (postId: number) => {
+    setNewsItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === postId ? { ...item, showAllComments: !item.showAllComments } : item
+      )
+    );
   };
 
   return (
     <div className="scrollbar-hide h-full overflow-y-auto p-8">
       {newsItems.map((item) => (
         <div key={item.id} className="bg-gray-800 p-4 rounded-md mb-4">
-          <div className="flex  mb-2 gap-6 w-full">
-            <div className=' flex gap-6 w-4/5' >
-              <Avater/>
+          <div className="flex mb-2 gap-6 w-full">
+            <div className="flex gap-6 w-4/5">
+              <Avater />
               <p className="text-gray-400">{item.name}</p>
             </div>
-            <div className='' ><ThemeController/></div>
+            <div>
+              <ThemeController />
+            </div>
           </div>
           <h2 className="text-xl font-bold mb-2">{item.title}</h2>
           <p className="text-gray-400 mb-2">{item.date}</p>
+          {/* Display images */}
           <div className="grid grid-cols-3 gap-4 mb-4">
-            {item.imageUrls.map((imageUrl, index) => (
+            {item.imageUrls && Array.isArray(item.imageUrls) && item.imageUrls.map((imageUrl, index) => (
               <img key={index} src={imageUrl} alt={`Image ${index + 1}`} className="rounded-lg" />
             ))}
           </div>
+
           <div className="flex items-center justify-between text-gray-400">
             <div className="flex items-center">
-              <button className="flex items-center mr-4" onClick={() => handleLike(item.id)} disabled={item.liked}>
+              <button
+                className="flex items-center mr-4"
+                onClick={() => handleLike(item.id)}
+                disabled={item.liked}
+              >
                 <FaThumbsUp className={`mr-1 ${item.liked ? 'text-blue-500' : ''}`} />
                 {item.likes}
               </button>
-              <button className="flex items-center mr-4" onClick={() => handleDislike(item.id)} disabled={item.disliked}>
+              <button
+                className="flex items-center mr-4"
+                onClick={() => handleDislike(item.id)}
+                disabled={item.disliked}
+              >
                 <FaThumbsDown className={`mr-1 ${item.disliked ? 'text-red-500' : ''}`} />
                 {item.dislikes}
               </button>
@@ -200,23 +192,40 @@ const NewsFeed = () => {
                 {item.showAllComments ? 'Hide Comments' : 'See More'}
               </button>
               <button className="flex items-center">
-                <svg className="h-6 w-6 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-                  <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                <svg
+                  className="h-6 w-6 mr-1"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <path
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  />
+                  <path
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  />
                 </svg>
                 Save
               </button>
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-lg font-semibold mb-2">Comments</h3>
-            {item.comments.slice(0, item.showAllComments ? item.comments.length : 2).map((comment) => (
-              <div key={comment.id} className="flex items-center mb-2">
-                <img src={comment.avatar} alt="Avatar" className="h-6 w-6 mr-2 rounded-full" />
-                <p className="text-gray-400">{comment.text}</p>
-              </div>
-            ))}
-          </div>
+          {item.showAllComments && (
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold mb-2">Comments</h3>
+              {item.comments.map((comment) => (
+                <div key={comment.id} className="flex items-center mb-2">
+                  <img src={comment.avatar} alt="Avatar" className="h-6 w-6 mr-2 rounded-full" />
+                  <p className="text-gray-400">{comment.text}</p>
+                </div>
+              ))}
+            </div>
+          )}
           {!item.showAllComments && item.comments.length > 2 && (
             <div className="mt-2">
               <button className="text-gray-400 hover:text-white" onClick={() => toggleCommentsVisibility(item.id)}>
