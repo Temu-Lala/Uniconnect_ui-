@@ -221,7 +221,7 @@ const NewsFeed = () => {
               {item.comments.map((comment) => (
                 <div key={comment.id} className="flex items-center mb-2">
                   <img src={comment.avatar} alt="Avatar" className="h-6 w-6 mr-2 rounded-full" />
-                  <p className="text-gray-400">{comment.text}</p>
+                  <p className="text-gray-400">{comment.body}</p>
                 </div>
               ))}
             </div>
