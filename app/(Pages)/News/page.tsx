@@ -70,7 +70,7 @@ const NewsFeed = () => {
   const handleCommentSubmit = async (postId: number) => {
     try {
       if (newComment.trim() !== '') {
-        const response = await fetch('http://127.0.0.1:8000/add-comment/', {
+        const response = await fetch('http://127.0.0.1:8000/comments/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
