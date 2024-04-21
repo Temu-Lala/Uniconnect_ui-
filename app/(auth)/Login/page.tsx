@@ -1,90 +1,75 @@
 "use client"
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { AuthActions } from '../utils';
 
-export default function LoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+type FormData = {
+  email: string;
+  password: string;
+};
+
+const LoginPage = () => {
+  const [error, setError] = useState<string>('');
   const router = useRouter();
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
+  const { login } = AuthActions();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data: FormData) => {
     try {
-      // Send a request to the backend API to authenticate the user
-      const response = await axios.post('http://127.0.0.1:8000/login/', {
-        username,
-        password,
-      });
-
-      // If authentication is successful, fetch the user's profile data
-      const userProfileResponse = await axios.get('http://127.0.0.1:8000/GustUser/', {
-        headers: {
-          Authorization: `Bearer ${response.data.token}`, // Include the authentication token in the request headers
-        },
-      });
-
-      // Check if the user profile exists in the database
-      if (userProfileResponse.data.length > 0) {
-        // User is registered, redirect to the home page
-        router.push('/');
-      } else {
-        // User is not registered, display an error message
-        setError('User not registered');
-      }
+      const { email, password } = data;
+      await login(email, password);
+      router.push('/dashboard');
     } catch (error) {
-      // Handle login error
       console.error('Login error:', error);
-      setError('Login failed');
+      setError('Invalid email or password');
     }
   };
 
   return (
-    <div className="hero min-h-screen bg-base-200">
-      <div className="hero-content flex-col lg:flex-row-reverse">
-        <div className="text-center lg:text-left">
-          <h1 className="text-5xl font-bold">Login now!</h1>
-          <p className="py-6">Your login form content...</p>
-        </div>
-        <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
-          <form className="card-body" onSubmit={handleLogin}>
-            {/* Your login form fields */}
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Username</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Username"
-                className="input input-bordered"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Password</span>
-              </label>
-              <input
-                type="password"
-                placeholder="Password"
-                className="input input-bordered"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-control mt-6">
-              <button type="submit" className="btn btn-primary">
-                Login
-              </button>
-            </div>
-          </form>
-          {error && <p className="text-red-500">{error}</p>}
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="px-8 py-6 mt-4 text-left bg-white shadow-lg w-1/3">
+        <h3 className="text-2xl font-semibold">Login to your account</h3>
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
+          <div>
+            <label className="block" htmlFor="email">Email</label>
+            <input
+              type="text"
+              placeholder="Email"
+              {...register("email", { required: true })}
+              className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600"
+            />
+            {errors.email && (
+              <span className="text-xs text-red-600">Email is required</span>
+            )}
+          </div>
+          <div className="mt-4">
+            <label className="block" htmlFor="password">Password</label>
+            <input
+              type="password"
+              placeholder="Password"
+              {...register("password", { required: true })}
+              className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600"
+            />
+            {errors.password && (
+              <span className="text-xs text-red-600">Password is required</span>
+            )}
+          </div>
+          <div className="flex items-center justify-between mt-4">
+            <button className="px-12 py-2 leading-5 text-white transition-colors duration-200 transform bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:bg-blue-700">
+              Login
+            </button>
+          </div>
+          {error && (
+            <span className="text-xs text-red-600">{error}</span>
+          )}
+        </form>
+        <div className="mt-6 text-center">
+          <a href="/auth/password/reset-password" className="text-sm text-blue-600 hover:underline">Forgot password?</a>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default LoginPage;

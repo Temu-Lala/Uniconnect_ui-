@@ -15,7 +15,7 @@ const UserProfileList = () => {
   useEffect(() => {
     const fetchUserProfiles = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/user-profiles/');
+        const response = await fetch('http://127.0.0.1:8000/GustUser/');
         if (!response.ok) {
           throw new Error('Failed to fetch user profiles');
         }
@@ -61,7 +61,7 @@ const UserProfileList = () => {
         async (position) => {
           try {
             const { latitude, longitude } = position.coords;
-            const response = await fetch(`http://127.0.0.1:8000/user-profiles/nearby?latitude=${latitude}&longitude=${longitude}`);
+            const response = await fetch(`http://127.0.0.1:8000/GustUser//nearby?latitude=${latitude}&longitude=${longitude}`);
             if (!response.ok) {
               throw new Error('Failed to fetch nearby user profiles');
             }
