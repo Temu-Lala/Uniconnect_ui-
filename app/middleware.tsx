@@ -1,17 +1,17 @@
 
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { cookies } from "next/headers";
+// import { NextResponse } from "next/server";
+// import type { NextRequest } from "next/server";
+// import { cookies } from "next/headers";
 
-export function middleware(request: NextRequest) {
-  const cookieStore = cookies();
-  const accessToken = cookieStore.get("accesssToken");
+// export function middleware(request: NextRequest) {
+//   const cookieStore = cookies();
+//   const accessToken = cookieStore.get("accesssToken");
 
-  if (!accessToken && request.nextUrl.pathname !== "/") {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-}
+//   if (!accessToken && request.nextUrl.pathname !== "/") {
+//     return NextResponse.redirect(new URL("/", request.url));
+//   }
+// }
 
-export const config = {
-  matcher: ["/((?!api|auth|_next/static|_next/image|.*\\.png$).*)"],
-};
+// export const config = {
+//   matcher: ["/((?!api|auth|_next/static|_next/image|.*\\.png$).*)"],
+// };

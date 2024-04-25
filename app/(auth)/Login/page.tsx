@@ -1,75 +1,68 @@
-"use client"
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { AuthActions } from '../utils';
+// pages/login.js
+'use client'
+// pages/login.js
+import { useState } from 'react';
+import { useRouter } from 'next/navigation'; // Use next/router instead of next/navigation
 
-type FormData = {
-  email: string;
-  password: string;
-};
-
-const LoginPage = () => {
-  const [error, setError] = useState<string>('');
+export default function Login() {
   const router = useRouter();
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
-  const { login } = AuthActions();
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+  });
 
-  const onSubmit = async (data: FormData) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const { email, password } = data;
-      await login(email, password);
-      router.push('/dashboard');
+      const response = await fetch('http://127.0.0.1:8000/login/', {  // Use relative URL for the login endpoint
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('token', data.token);
+        router.push('/'); // Redirect to the homepage after successful login
+      } else {
+        throw new Error('Login failed');
+      }
     } catch (error) {
-      console.error('Login error:', error);
-      setError('Invalid email or password');
+      console.error('Error:', error);
+      // Handle error (e.g., display error message to the user)
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="px-8 py-6 mt-4 text-left bg-white shadow-lg w-1/3">
-        <h3 className="text-2xl font-semibold">Login to your account</h3>
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
-          <div>
-            <label className="block" htmlFor="email">Email</label>
-            <input
-              type="text"
-              placeholder="Email"
-              {...register("email", { required: true })}
-              className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600"
-            />
-            {errors.email && (
-              <span className="text-xs text-red-600">Email is required</span>
-            )}
-          </div>
-          <div className="mt-4">
-            <label className="block" htmlFor="password">Password</label>
-            <input
-              type="password"
-              placeholder="Password"
-              {...register("password", { required: true })}
-              className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600"
-            />
-            {errors.password && (
-              <span className="text-xs text-red-600">Password is required</span>
-            )}
-          </div>
-          <div className="flex items-center justify-between mt-4">
-            <button className="px-12 py-2 leading-5 text-white transition-colors duration-200 transform bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:bg-blue-700">
-              Login
-            </button>
-          </div>
-          {error && (
-            <span className="text-xs text-red-600">{error}</span>
-          )}
-        </form>
-        <div className="mt-6 text-center">
-          <a href="/auth/password/reset-password" className="text-sm text-blue-600 hover:underline">Forgot password?</a>
+    <div>
+      <h1>User Login</h1>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Username:</label>
+          <input
+            type="text"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+          />
         </div>
-      </div>
+        <div>
+          <label>Password:</label>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+          />
+        </div>
+        <button type="submit">Login</button>
+      </form>
     </div>
   );
-};
-
-export default LoginPage;
+}

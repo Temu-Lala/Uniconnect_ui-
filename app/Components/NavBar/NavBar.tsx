@@ -6,11 +6,12 @@ import { RiUserFollowFill } from "react-icons/ri";
 import AlertError from '../Alert/Error/Error';
 import Search from '../Search/Search';
 import Link from 'next/link';
-
+import { useRouter } from 'next/navigation';
 export default function NavBar() {
   const [selectedAlert, setSelectedAlert] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isOffcanvasOpen, setIsOffcanvasOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -36,6 +37,24 @@ export default function NavBar() {
   const toggleMenu = () => {
     setIsMenuOpen(prevState => !prevState);
     setIsOffcanvasOpen(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/logout', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        localStorage.removeItem('token'); // Remove token from localStorage
+        router.push('/Login'); // Redirect to login page
+      } else {
+        throw new Error('Failed to logout');
+      }
+    } catch (error) {
+      console.error('Error logging out:', error.message);
+    }
   };
 
   return (
@@ -66,7 +85,7 @@ export default function NavBar() {
         {/* Center Notification Icons - hidden on small screens */}
         <div className="hidden md:flex gap-12 flex-grow justify-center">
           <BsFillBellFill className={`text-3xl cursor-pointer ${selectedAlert === 'bell' ? 'text-primary' : ''}`} onClick={() => handleAlertClick('bell')} />
-         <FaHome className="text-3xl cursor-pointer" />
+          <FaHome className="text-3xl cursor-pointer" />
           <FaFacebookMessenger className="text-3xl cursor-pointer" />
           <RiUserFollowFill className="text-3xl cursor-pointer" />
           <FaNewspaper className="text-3xl cursor-pointer" />
@@ -80,11 +99,13 @@ export default function NavBar() {
           </div>
           <ul tabIndex={0} className="mt-3 p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
             <li>
-            <Link href='/Profiles'>Profile</Link>
+              <Link href='/Profiles'>Profile</Link>
             </li>
-            <li>  <Link href='/Setting'>Setting</Link></li>
             <li>
-              <Link href='/Login'>Logout</Link>
+              <Link href='/Setting'>Setting</Link>
+            </li>
+            <li>
+              <button onClick={handleLogout}>Logout</button>
             </li>
           </ul>
         </div>
@@ -94,6 +115,19 @@ export default function NavBar() {
         <div className="w-96 h-48 rounded-lg bg-gray-800 flex justify-center items-center">
           <AlertError />
         </div>
+      )}
+      {/* Hidden Menu for Small Screens */}
+      {isOffcanvasOpen && (
+        <div className="md:hidden fixed top-0 bottom-0 right-0 left-0 h-full bg-black bg-opacity-50">
+          <div className="flex flex-col justify-center items-center h-full">
+            <BsFillBellFill className={`text-3xl cursor-pointer ${selectedAlert === 'bell' ? 'text-primary' : ''}`} onClick={() => handleAlertClick('bell')} />
+            <FaHome className="text-3xl cursor-pointer mt-6" />
+            <FaFacebookMessenger className="text-3xl cursor-pointer mt-6" />
+            <RiUserFollowFill className="text-3xl cursor-pointer mt-6" />
+            <FaNewspaper className="text-3xl cursor-pointer mt-6" />
+          </div>
+        </div>
+  
       )}
       {/* Hidden Menu for Small Screens */}
       {isOffcanvasOpen && (

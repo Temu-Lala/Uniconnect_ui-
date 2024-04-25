@@ -1,40 +1,45 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import axios from 'axios';
 
 const Register = () => {
   const [selectedOption, setSelectedOption] = useState(null);
+  const [groups, setGroups] = useState([]);
 
-  const options = [
-    {
-      label: 'Select One ',
-     
-    },
-    {
-      label: 'Campus',
-      value: '/Register/as-Campus',
-    },
-    {
-      label: 'Collage',
-      value: '/Register/as-Collage',
-    },
-    {
-      label: 'Department',
-      value: '/Register/as-Department',
-    },
-    {
-      label: 'Lectures',
-      value: '/Register/as-Lectures',
-    },
-    {
-      label: 'University',
-      value: '/Register/as-Universty',
-    },
-    {
-      label: 'Users',
-      value: '/Register/as-User',
-    },
-  ];
+  // Fetch groups from backend when component mounts
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/groups/');
+        setGroups(response.data);
+      } catch (error) {
+        console.error('Error fetching groups:', error);
+      }
+    };
+
+    fetchGroups();
+  }, []);
+
+  // Function to generate the path based on the selected group
+  const generatePath = (groupId) => {
+    switch (groupId) {
+      case 'Campus':
+        return '/Register/as-Campus';
+      case 'Collage':
+        return '/Register/as-Collage';
+      case 'Department':
+        return '/Register/as-Department';
+      case 'Lectures':
+        return '/Register/as-Lectures';
+      case 'University':
+        return '/Register/as-University';
+      case 'Users':
+        return '/Register/as-User';
+      default:
+        return '/groups/'; // Default path
+    }
+  };
 
   return (
     <div className="bg-black fixed top-0 left-0 w-screen h-screen flex justify-center items-center">
@@ -48,30 +53,23 @@ const Register = () => {
             <option disabled value="">
               Pick one
             </option>
-            {options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
+            {/* Render options based on fetched groups */}
+            {groups.map((group) => (
+              <option key={group.id} value={group.name}>
+                {group.name}
               </option>
             ))}
           </select>
         </div>
 
-
-        <></>
-
         {selectedOption && (
-          <Link href={selectedOption}>
-            <button
-              className="btn btn-primary mt-4"
-              onClick={() => setSelectedOption(null)}
-            >
-              Go
-            </button>
+          <Link href={generatePath(selectedOption)} passHref>
+            <button className="btn btn-primary mt-4">Go</button>
           </Link>
         )}
       </div>
     </div>
   );
-}
+};
 
 export default Register;

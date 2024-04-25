@@ -12,7 +12,7 @@ const UserProfile = () => {
   const fetchUserProfile = async () => {
     try {
       // Fetch user profile data from the backend
-      const response = await axios.get('http://127.0.0.1:8000/user-profiles/'); // Update the endpoint URL
+      const response = await axios.get('http://127.0.0.1:8000/user-profile/'); // Update the endpoint URL
       setUserProfile(response.data);
     } catch (error) {
       console.error('Error fetching user profile:', error);
