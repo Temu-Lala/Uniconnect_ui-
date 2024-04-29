@@ -1,13 +1,12 @@
 'use client'; 
 import React, { useState, useEffect, ChangeEvent } from 'react';
-import { FaThumbsUp, FaThumbsDown, FaShare } from 'react-icons/fa';
+import { FaThumbsUp, FaThumbsDown, FaShare, FaEdit } from 'react-icons/fa';
 import Avater from '../../Components/Avater/Avater';
 import ThemeController from '@/app/Components/ThemController/ThemController';
 
 interface NewsItem {
   id: number;
-  ownerName: ownerName,
-
+  ownerName: string;
   owner: string;
   title: string;
   date: string;
@@ -26,7 +25,8 @@ const NewsFeed = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [users, setUsers] = useState<{ [userId: number]: { username: string } }>({});
-
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editedCommentText, setEditedCommentText] = useState<string>('');
   useEffect(() => {
     fetchNewsFeed();
     fetchUsers();
@@ -84,8 +84,8 @@ const NewsFeed = () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Token ${authToken}`,
-        },
+          'Authorization': `Bearer ${authToken}` // Include the token in the Authorization header
+      },
       });
 
       if (!response.ok) {
@@ -124,7 +124,6 @@ const NewsFeed = () => {
       comments: []
     };
   };
-  
 
   const handleCommentChange = (postId: number, e: ChangeEvent<HTMLTextAreaElement>) => {
     setComments({ ...comments, [postId]: e.target.value });
@@ -142,8 +141,8 @@ const NewsFeed = () => {
         const response = await fetch('http://127.0.0.1:8000/add-comment/', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Token ${authToken}`,
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authToken}` // Include the token in the Authorization header
           },
           body: JSON.stringify({
             postId,
@@ -178,15 +177,17 @@ const NewsFeed = () => {
       setError('Failed to add comment. Please try again later.');
     }
   };
-  
-  
+
   const handleLike = async (postId: number) => {
+    const authToken = localStorage.getItem('token');
+
     try {
       const response = await fetch('http://127.0.0.1:8000/like-post/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        },
+          'Authorization': `Bearer ${authToken}` // Include the token in the Authorization header
+      },
         body: JSON.stringify({ postId }),
       });
       if (!response.ok) {
@@ -232,7 +233,6 @@ const NewsFeed = () => {
     );
   };
 
-  
   const loadMoreComments = async (postId, postType, lastCommentTimestamp) => {
     try {
       const post = newsItems.find(item => item.id === postId);
@@ -267,6 +267,83 @@ const NewsFeed = () => {
       setError('Failed to load more comments. Please try again later.');
     }
   };
+  const handleEditComment = async (postId: number, commentId: number) => {
+    try {
+      const authToken = localStorage.getItem('token');
+      if (!authToken) {
+        throw new Error('User authentication token not found. Please log in again.');
+      }
+  
+      const response = await fetch(`http://127.0.0.1:8000/comments/${commentId}/edit/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}` // Include the token in the Authorization header
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to fetch comment for editing');
+      }
+  
+      const data = await response.json();
+      const editedCommentText = data.body;
+  
+      // Set the edited comment text in the input field for editing
+      setEditedCommentText(editedCommentText);
+      setEditingCommentId(commentId); // Set the comment ID being edited
+    } catch (error) {
+      console.error('Error editing comment:', error.message);
+      setError('Failed to edit comment. Please try again later.');
+    }
+  };
+  
+  const handleSendEditedComment = async (postId: number, commentId: number) => {
+    try {
+      const authToken = localStorage.getItem('token');
+      if (!authToken) {
+        throw new Error('User authentication token not found. Please log in again.');
+      }
+  
+      const response = await fetch(`http://127.0.0.1:8000/comments/${commentId}/edit/`, {
+        method: 'PUT', // Use PUT method to update the comment
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}` // Include the token in the Authorization header
+        },
+        body: JSON.stringify({
+          commentText: editedCommentText // Use the edited comment text
+        })
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to send edited comment');
+      }
+  
+      // Update the comment text in the UI without adding a new comment entry
+      setNewsItems(prevItems =>
+        prevItems.map(item => {
+          if (item.id === postId) {
+            const updatedComments = item.comments.map(comment => {
+              if (comment.id === commentId) {
+                return { ...comment, body: editedCommentText };
+              }
+              return comment;
+            });
+            return { ...item, comments: updatedComments };
+          }
+          return item;
+        })
+      );
+  
+      // Reset editing state
+      setEditingCommentId(null);
+      setEditedCommentText('');
+    } catch (error) {
+      console.error('Error sending edited comment:', error.message);
+      setError('Failed to send edited comment. Please try again later.');
+    }
+  };
   
   return (
     <div className="scrollbar-hide h-full overflow-y-auto p-8">
@@ -276,7 +353,6 @@ const NewsFeed = () => {
           <div className="flex gap-6 w-4/5">
             <Avater />
             <p className="text-gray-400">{item.ownerName}</p>
-
             <p className="text-gray-400">{item.owner}</p>
           </div>
           <div>
@@ -285,68 +361,55 @@ const NewsFeed = () => {
         </div>
         <h2 className="text-xl font-bold mb-2">{item.title}</h2>
         <p className="text-gray-400 mb-2">{item.date}</p>
+        {/* Display images */}
         <div className="grid grid-cols-3 gap-4 mb-4">
           {item.imageUrls && Array.isArray(item.imageUrls) && item.imageUrls.map((imageUrl, index) => (
             <img key={index} src={imageUrl} alt={`Image ${index + 1}`} className="rounded-lg" />
           ))}
         </div>
-
+        {/* Display like, dislike, share buttons */}
         <div className="flex items-center justify-between text-gray-400">
           <div className="flex items-center">
-            <button className="flex items-center mr-4">
-              <FaThumbsUp className="mr-1" />
-              {item.likes}
-            </button>
-            <button className="flex items-center mr-4">
-              <FaThumbsDown className="mr-1" />
-              {item.dislikes}
-            </button>
-            <button className="flex items-center">
-              <FaShare className="mr-1" />
-              {item.shares}
-            </button>
+            {/* Like, Dislike, Share buttons */}
           </div>
           <div>
+            {/* Toggle comments visibility */}
             <button className="flex items-center" onClick={() => toggleCommentsVisibility(item.id)}>
               {item.showAllComments ? 'Hide Comments' : 'See More'}
             </button>
-            <button className="flex items-center">
-              <svg
-                className="h-6 w-6 mr-1"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-              >
-                <path
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                />
-                <path
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                />
-              </svg>
-              Save
-            </button>
           </div>
         </div>
+        {/* Display comments */}
         {item.showAllComments && (
           <div className="mt-4">
             <h3 className="text-lg font-semibold mb-2">Comments</h3>
-            {/* Filter comments based on post ID */}
             {item.comments.filter(comment => comment.object_id === item.id).map((comment) => (
               <div key={comment.id} className="flex items-center mb-2">
                 <img src={comment.author.Avatar} alt="Avatar" className="h-6 w-6 mr-2 rounded-full" />
-                <p className="text-gray-400">{comment.author}</p> {/* Display username */}
-                <p className="text-gray-400">{comment.body}</p> {/* Display comment text */}
-                <p className="text-gray-400">{comment.created_on}</p> {/* Display timestamp */}
+                <p className="text-gray-400">{comment.author.Username}</p>
+                <p className="text-gray-400">{editingCommentId === comment.id ? 
+                  <input 
+                    type="text" 
+                    value={editedCommentText} 
+                    onChange={(e) => setEditedCommentText(e.target.value)} 
+                    className="border border-gray-300 rounded-md p-1 mr-2"
+                  /> 
+                  : comment.body}
+                </p>
+                <p className="text-gray-400">{comment.created_on}</p>
+                {editingCommentId === comment.id ? (
+                  <button className="flex items-center" onClick={() => handleSendEditedComment(item.id, comment.id)}>
+                    Send Edited Comment
+                  </button>
+                ) : (
+                  <button className="flex items-center" onClick={() => handleEditComment(item.id, comment.id)}>
+                    <FaEdit className="mr-1" />
+                    Edit
+                  </button>
+                )}
               </div>
             ))}
-            {/* Button to load more comments */}
+            {/* Load more comments button */}
             <div className="mt-2">
               <button className="text-gray-400 hover:text-white" onClick={() => loadMoreComments(item.id, item.type)}>
                 Load More Comments
@@ -354,14 +417,7 @@ const NewsFeed = () => {
             </div>
           </div>
         )}
-
-        {!item.showAllComments && item.comments.length > 2 && (
-          <div className="mt-2">
-            <button className="text-gray-400 hover:text-white" onClick={() => toggleCommentsVisibility(item.id)}>
-              See More Comments
-            </button>
-          </div>
-        )}
+        {/* Add comment section */}
         <div className="mt-4">
           <textarea
             className="w-full h-16 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-indigo-500"
@@ -379,7 +435,7 @@ const NewsFeed = () => {
       </div>
     ))}
   </div>
-  );
+);
 };
 
 export default NewsFeed;

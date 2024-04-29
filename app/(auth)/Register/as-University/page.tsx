@@ -1,24 +1,45 @@
 'use client'
-
-
-import { useState } from 'react';
+// components/NewUniversityProfileForm.js
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const Register = () => {
+const NewUniversityProfileForm = () => {
   const [formData, setFormData] = useState({
     name: '',
-    establishment_date: '',
     bio: '',
     link: '',
-    number_of_lectures: '',
-    number_of_departments: '',
-    number_of_campuses: '',
-    number_of_colleges: '',
+    establishment_date: '',
+    number_of_lectures: 0,
+    number_of_departments: 0,
+    number_of_campuses: 0,
+    number_of_colleges: 0,
     about: '',
     location: '',
-    username: '', // Add username field
-    password: '' // Add password field
+    group: '',
+    university_profile_id: ''
   });
+
+  useEffect(() => {
+    // Fetch user ID from the server using the token
+    const fetchUserId = async () => {
+      try {
+        const authToken = localStorage.getItem('token'); // Assuming you store the token in localStorage upon login
+        if (authToken) {
+          const response = await axios.get('http://127.0.0.1:8000/user-profile/', {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authToken}` // Include the token in the Authorization header
+            },
+          });
+          setFormData(prevFormData => ({ ...prevFormData, user_id: response.data.id }));
+        }
+      } catch (error) {
+        console.error('Error fetching user ID:', error);
+      }
+    };
+
+    fetchUserId();
+  }, []); // Run only once on component mount
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,75 +48,88 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://127.0.0.1:8000/register/', formData);
-      console.log(response.data);
-      // Redirect or show success message
+      const authToken = localStorage.getItem('token'); // Assuming you store the token in localStorage upon login
+      if (authToken) {
+        const response = await axios.post('http://127.0.0.1:8000/university_profiles/', formData, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}` // Include the token in the Authorization header
+          },
+        });
+        console.log('University profile created:', response.data);
+        // Reset form fields after successful submission
+        setFormData({
+          name: '',
+          bio: '',
+          link: '',
+          establishment_date: '',
+          number_of_lectures: 0,
+          number_of_departments: 0,
+          number_of_campuses: 0,
+          number_of_colleges: 0,
+          about: '',
+          location: '',
+          group: '',
+          university_profile_id: ''
+        });
+      }
     } catch (error) {
-      console.error('Registration error:', error);
-      // Handle error
+      console.error('Error creating university profile:', error);
     }
   };
 
   return (
-    <div>
-      <h1>University Registration</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Name:</label>
-          <input type="text" name="name" value={formData.name} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Establishment Date:</label>
-          <input type="date" name="establishment_date" value={formData.establishment_date} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Bio:</label>
-          <textarea name="bio" value={formData.bio} onChange={handleChange}></textarea>
-        </div>
-        <div>
-          <label>Link:</label>
-          <input type="url" name="link" value={formData.link} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Number of Lectures:</label>
-          <input type="number" name="number_of_lectures" value={formData.number_of_lectures} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Number of Departments:</label>
-          <input type="number" name="number_of_departments" value={formData.number_of_departments} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Number of Campuses:</label>
-          <input type="number" name="number_of_campuses" value={formData.number_of_campuses} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Number of Colleges:</label>
-          <input type="number" name="number_of_colleges" value={formData.number_of_colleges} onChange={handleChange} />
-        </div>
-        <div>
-          <label>About:</label>
-          <textarea name="about" value={formData.about} onChange={handleChange}></textarea>
-        </div>
-        <div>
-          <label>Location:</label>
-          <input type="text" name="location" value={formData.location} onChange={handleChange} />
-        </div>
-        {/* Username and Password Fields */}
-        <div>
-          <label>Username:</label>
-          <input type="text" name="username" value={formData.username} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input type="password" name="password" value={formData.password} onChange={handleChange} />
-        </div>
-        <button type="submit">Register</button>
-      </form>
-    </div>
+    <form onSubmit={handleSubmit}>
+      <label>
+        Name:
+        <input type="text" name="name" value={formData.name} onChange={handleChange} />
+      </label>
+      <label>
+        Bio:
+        <textarea name="bio" value={formData.bio} onChange={handleChange} />
+      </label>
+      <label>
+        Link:
+        <input type="text" name="link" value={formData.link} onChange={handleChange} />
+      </label>
+      <label>
+        Establishment Date:
+        <input type="date" name="establishment_date" value={formData.establishment_date} onChange={handleChange} />
+      </label>
+      <label>
+        Number of Lectures:
+        <input type="number" name="number_of_lectures" value={formData.number_of_lectures} onChange={handleChange} />
+      </label>
+      <label>
+        Number of Departments:
+        <input type="number" name="number_of_departments" value={formData.number_of_departments} onChange={handleChange} />
+      </label>
+      <label>
+        Number of Campuses:
+        <input type="number" name="number_of_campuses" value={formData.number_of_campuses} onChange={handleChange} />
+      </label>
+      <label>
+        Number of Colleges:
+        <input type="number" name="number_of_colleges" value={formData.number_of_colleges} onChange={handleChange} />
+      </label>
+      <label>
+        About:
+        <textarea name="about" value={formData.about} onChange={handleChange} />
+      </label>
+      <label>
+        Location:
+        <input type="text" name="location" value={formData.location} onChange={handleChange} />
+      </label>
+      <label>
+        Group:
+        <input type="text" name="group" value={formData.group} onChange={handleChange} />
+      </label>
+      <button type="submit">Create University Profile</button>
+    </form>
   );
 };
 
-export default Register;
+export default NewUniversityProfileForm;
 
 
 // import React, { useState, ChangeEvent } from 'react';

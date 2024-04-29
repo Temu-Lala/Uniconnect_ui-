@@ -34,8 +34,7 @@ const Register = () => {
         return '/Register/as-Lectures';
       case 'University':
         return '/Register/as-University';
-      case 'Users':
-        return '/Register/as-User';
+  
       default:
         return '/groups/'; // Default path
     }

@@ -2,6 +2,7 @@
 import React, { useState, ChangeEvent } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import axios from 'axios';
 
 interface FormData {
   phone: string;
@@ -12,7 +13,6 @@ interface FormData {
   username: string;
   webpage: string;
   establishmentYear: Date | null;
-  campus: string;
   department: string;
   collage: string;
   lectures: string;
@@ -20,6 +20,9 @@ interface FormData {
   library: string;
   education: string;
   experience: string;
+  campus: string;
+  location: string; // Add location field
+  university: string
 }
 
 export default function Department() {
@@ -89,7 +92,9 @@ export default function Department() {
     lab: '',
     library: '',
     education: '',
-    experience: ''
+    experience: '',
+    location: '', // Add location field
+    university: '',
   });
 
   const [errors, setErrors] = useState({
@@ -108,7 +113,9 @@ export default function Department() {
     lab: '',
     library: '',
     education: '',
-    experience: ''
+    experience: '',
+    location: '', // Add location field
+    university: '',
   });
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -126,13 +133,17 @@ export default function Department() {
     });
   };
 
-  const handleSubmit = (e: { preventDefault: () => void }) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const validationErrors = validateForm(formData);
-    if (Object.keys(validationErrors).length === 0) {
-      console.log('Form data:', formData);
-    } else {
-      setErrors(validationErrors);
+    const formDataToSend = new FormData();
+    for (const key in formData) {
+      formDataToSend.append(key, formData[key]);
+    }
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/college_profiles/', formDataToSend);
+      console.log('Form submitted successfully:', response.data);
+    } catch (error) {
+      console.error('Error submitting form:', error);
     }
   };
 

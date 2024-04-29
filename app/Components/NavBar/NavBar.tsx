@@ -7,6 +7,8 @@ import AlertError from '../Alert/Error/Error';
 import Search from '../Search/Search';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
+
 export default function NavBar() {
   const [selectedAlert, setSelectedAlert] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,35 +30,48 @@ export default function NavBar() {
     };
   }, [isMenuOpen]);
 
+  const toggleMenu = () => {
+    setIsMenuOpen(prevState => !prevState);
+    setIsOffcanvasOpen(true);
+  };
+
   const handleAlertClick = (alertType: string) => {
     setSelectedAlert(prevAlert => prevAlert === alertType ? null : alertType);
     setIsMenuOpen(false);
     setIsOffcanvasOpen(false);
   };
 
-  const toggleMenu = () => {
-    setIsMenuOpen(prevState => !prevState);
-    setIsOffcanvasOpen(true);
-  };
+  const axiosInstance = axios.create({
+    withCredentials: true, // Include cookies in cross-origin requests
+  });
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/logout', {
-        method: 'GET',
-        credentials: 'include',
+      const token = localStorage.getItem('token');
+      console.log(token)
+      if (!token) {
+        throw new Error('No token found'); // Handle case where token is not available
+      }
+
+      const response = await fetch('http://127.0.0.1:8000/logout/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Include token in the Authorization header
+        },
       });
 
       if (response.ok) {
         localStorage.removeItem('token'); // Remove token from localStorage
-        router.push('/Login'); // Redirect to login page
+        router.push('/login'); // Redirect to login page after successful logout
       } else {
-        throw new Error('Failed to logout');
+        throw new Error('Logout failed'); // Handle case where logout request fails
       }
     } catch (error) {
-      console.error('Error logging out:', error.message);
+      console.error('Error:', error);
+      // Handle error (e.g., display error message to the user)
     }
   };
-
   return (
     <div>
       <div className="navbar bg-base-100 flex justify-between items-center">
@@ -128,18 +143,6 @@ export default function NavBar() {
           </div>
         </div>
   
-      )}
-      {/* Hidden Menu for Small Screens */}
-      {isOffcanvasOpen && (
-        <div className="md:hidden fixed top-0 bottom-0 right-0 left-0 h-full bg-black bg-opacity-50">
-          <div className="flex flex-col justify-center items-center h-full">
-            <BsFillBellFill className={`text-3xl cursor-pointer ${selectedAlert === 'bell' ? 'text-primary' : ''}`} onClick={() => handleAlertClick('bell')} />
-            <FaHome className="text-3xl cursor-pointer mt-6" />
-            <FaFacebookMessenger className="text-3xl cursor-pointer mt-6" />
-            <RiUserFollowFill className="text-3xl cursor-pointer mt-6" />
-            <FaNewspaper className="text-3xl cursor-pointer mt-6" />
-          </div>
-        </div>
       )}
     </div>
   );
