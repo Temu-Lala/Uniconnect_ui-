@@ -1,91 +1,127 @@
 'use client'
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { FiUser, FiMail, FiLock, FiCamera, FiLink, FiPhone, FiArrowRight } from 'react-icons/fi';
-import { useForm } from "react-hook-form";
-import { AuthActions } from "../../utils";
 
-type FormData = {
-  email: string;
-  username: string;
-  password: string;
-  name: string;
-  gender: string;
-  age: number;
-  link: string;
-  phone: string;
-};
+export default function Register() {
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    username: '',
+    email: '',
+    password: '',
+    gender: '',
+    age: 0,
+  });
 
-const Register = () => {
-  const { register, handleSubmit, formState: { errors }, setError } = useForm<FormData>();
-  const router = useRouter();
-  const { register: registerUser } = AuthActions(); 
-  const onSubmit = async (data: FormData) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-        const { email, username, password, name, gender, age, link, phone } = data;
-        await registerUser(email, username, password, name, gender, age, link, phone);
-        router.push("/");
-    } catch (err) {
-        setError("root", {
-            type: "manual",
-            message: err.response?.data?.detail || "An error occurred while registering.",
-        });
+      const response = await fetch('http://127.0.0.1:8000/signup/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify(formData),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        alert(data.message);
+        // Redirect to login page or handle success
+      } else {
+        throw new Error('Registration failed');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      // Handle error
     }
-};
-  
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="px-8 py-6 mt-4 text-left bg-white shadow-lg w-1/3">
-        <h3 className="text-2xl font-semibold">Register your account</h3>
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
-          <div>
-            <label className="block" htmlFor="email">Email</label>
-            <input type="text" placeholder="Email" {...register("email", { required: "Email is required" })} className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600" />
-            {errors.email && (<span className="text-xs text-red-600">{errors.email.message}</span>)}
-          </div>
-          <div className="mt-4">
-            <label className="block" htmlFor="username">Username</label>
-            <input type="text" placeholder="Username" {...register("username", { required: "Username is required" })} className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600" />
-            {errors.username && (<span className="text-xs text-red-600">{errors.username.message}</span>)}
-          </div>
-          <div className="mt-4">
-            <label className="block" htmlFor="password">Password</label>
-            <input type="password" placeholder="Password" {...register("password", { required: "Password is required" })} className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600" />
-            {errors.password && (<span className="text-xs text-red-600">{errors.password.message}</span>)}
-          </div>
-          <div className="mt-4">
-  <label className="block" htmlFor="age">Age</label>
-  <input type="number" placeholder="Age" {...register("age", { required: "Age is required" })} className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600" />
-  {errors.age && (<span className="text-xs text-red-600">{errors.age.message}</span>)}
-</div>
+  };
 
-          <div className="mt-4">
-            <label className="block" htmlFor="name">Name</label>
-            <input type="text" placeholder="Name" {...register("name", { required: "Name is required" })} className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600" />
-            {errors.name && (<span className="text-xs text-red-600">{errors.name.message}</span>)}
-          </div>
-          <div className="mt-4">
-            <label className="block" htmlFor="gender">Gender</label>
-            <select {...register("gender", { required: "Gender is required" })} className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600">
-              <option value="">Select Gender</option>
-              <option value="M">Male</option>
-              <option value="F">Female</option>
-            </select>
-            {errors.gender && (<span className="text-xs text-red-600">{errors.gender.message}</span>)}
-          </div>
-          {/* Add other fields similarly */}
-          <div className="flex items-center justify-between mt-4">
-            <button className="px-12 py-2 leading-5 text-white transition-colors duration-200 transform bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:bg-blue-700">Register</button>
-          </div>
-          {errors.root && (<span className="text-xs text-red-600">{errors.root.message}</span>)}
-        </form>
-      </div>
+  return (
+    <div>
+      <h1>User Registration</h1>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>First Name:</label>
+          <input
+            type="text"
+            name="first_name"
+            value={formData.first_name}
+            onChange={handleChange}
+          />
+        </div>
+        <div>
+          <label>Last Name:</label>
+          <input
+            type="text"
+            name="last_name"
+            value={formData.last_name}
+            onChange={handleChange}
+          />
+        </div>
+        <div>
+          <label>Username:</label>
+          <input
+            type="text"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+          />
+        </div>
+        <div>
+          <label>Email:</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+          />
+        </div>
+        <div>
+          <label>Password:</label>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+          />
+        </div>
+        <div>
+          <label>Gender:</label>
+          <select
+            name="gender"
+            value={formData.gender}
+            onChange={handleChange}
+          >
+            <option value="">Select Gender</option>
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+          </select>
+        </div>
+        <div>
+          <label>Age:</label>
+          <input
+            type="number"
+            name="age"
+            value={formData.age}
+            onChange={handleChange}
+          />
+        </div>
+        <button type="submit">Register</button>
+      </form>
     </div>
   );
-};
+}
 
-export default Register;
-
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
 
 
 // export default function Register() {

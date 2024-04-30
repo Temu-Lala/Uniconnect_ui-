@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
 import { BsBell } from "react-icons/bs";
 import { IoChatbubbleEllipsesOutline, IoHomeOutline } from "react-icons/io5";
 import { TbLetterU } from "react-icons/tb";
@@ -15,6 +17,7 @@ import SideBar from "./SideBar";
 
 const NavBar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const router = useRouter();
 
   const toggleMenu = () => {
     // Close sidebar and uncheck the hidden checkbox
@@ -29,6 +32,38 @@ const NavBar = () => {
   const closeMenu = () => {
     setIsSidebarOpen(false);
     document.getElementById("menu-checkbox")?.click();
+  };
+
+  const axiosInstance = axios.create({
+    withCredentials: true, // Include cookies in cross-origin requests
+  });
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      console.log(token)
+      if (!token) {
+        throw new Error('No token found'); // Handle case where token is not available
+      }
+
+      const response = await fetch('http://127.0.0.1:8000/logout/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Include token in the Authorization header
+        },
+      });
+
+      if (response.ok) {
+        localStorage.removeItem('token'); // Remove token from localStorage
+        router.push('/login'); // Redirect to login page after successful logout
+      } else {
+        throw new Error('Logout failed'); // Handle case where logout request fails
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      // Handle error (e.g., display error message to the user)
+    }
   };
 
   return (
@@ -93,7 +128,7 @@ const NavBar = () => {
         </div>
 
         {/* Right Profile Dropdown */}
-        <ProfileDropdown />
+        <ProfileDropdown handler={handleLogout}/>
 
         {/* Menu Icon for Small Screens */}
         <button className="flex z-[9999] sm:hidden">

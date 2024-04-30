@@ -14,6 +14,7 @@ export default function CreatePostView() {
 
     const createPost = async () => {
         try {
+
             let formData = new FormData();
             formData.append('title', post.title);
             formData.append('content', post.content);
@@ -25,10 +26,14 @@ export default function CreatePostView() {
             if (image) {
                 formData.append('image', image);
             }
-            await axios.post('http://127.0.0.1:8000/posts/', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+            const authToken = localStorage.getItem('token');
+
+            await axios.post('http://127.0.0.1:8000/university-posts/', formData, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authToken}` // Include the token in the Authorization header
+          },
             });
             router.push('/feed');
         } catch (error) {

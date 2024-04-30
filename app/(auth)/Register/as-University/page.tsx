@@ -1,13 +1,9 @@
-
-
-
-
 'use client'
 // components/NewUniversityProfileForm.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const NewCampusProfileForm = () => {
+const NewUniversityProfileForm = () => {
   const [formData, setFormData] = useState({
     name: '',
     bio: '',
@@ -54,7 +50,7 @@ const NewCampusProfileForm = () => {
     try {
       const authToken = localStorage.getItem('token'); // Assuming you store the token in localStorage upon login
       if (authToken) {
-        const response = await axios.post('http://127.0.0.1:8000/campus_profiles/', formData, {
+        const response = await axios.post('http://127.0.0.1:8000/university_profiles/', formData, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${authToken}` // Include the token in the Authorization header
@@ -133,85 +129,9 @@ const NewCampusProfileForm = () => {
   );
 };
 
-export default NewCampusProfileForm;
+export default NewUniversityProfileForm;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// 'use client'
 // import React, { useState, ChangeEvent } from 'react';
 // import DatePicker from 'react-datepicker';
 // import 'react-datepicker/dist/react-datepicker.css';
