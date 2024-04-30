@@ -18,6 +18,7 @@ interface NewsItem {
   liked: boolean;
   disliked: boolean;
   comments: { id: number; text: string; avatar: string }[];
+  error: {}; 
 }
 
 const NewsFeed = () => {

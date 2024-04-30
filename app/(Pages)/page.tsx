@@ -7,9 +7,7 @@ import React from 'react';
 export default function Home() {
   return (
     <div className=" scrollbar-hide overflow-hidden">
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <NavBar/>
-      </div>
+      
       <div className="flex mt-16"> {/* Adjust margin-top to accommodate the fixed navbar */}
         {/* Left section */}
         <div className="hidden lg:flex flex-none w-1/4 flex-col mr-4">
@@ -28,7 +26,6 @@ export default function Home() {
           <LecturesList /> */}
         </div>
       </div>
-      <Footer />
     </div>
   );
 }
