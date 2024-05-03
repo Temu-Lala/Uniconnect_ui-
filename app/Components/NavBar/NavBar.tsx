@@ -1,44 +1,37 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { BsFillBellFill } from 'react-icons/bs';
-import { FaHome, FaFacebookMessenger, FaNewspaper } from "react-icons/fa";
-import { RiUserFollowFill } from "react-icons/ri";
-import AlertError from '../Alert/Error/Error';
-import Search from '../Search/Search';
-import Link from 'next/link';
+import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { BsBell } from "react-icons/bs";
+import { IoChatbubbleEllipsesOutline, IoHomeOutline } from "react-icons/io5";
+import { TbLetterU } from "react-icons/tb";
+import { PiNewspaper } from "react-icons/pi";
 
-export default function NavBar() {
-  const [selectedAlert, setSelectedAlert] = useState<string | null>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isOffcanvasOpen, setIsOffcanvasOpen] = useState(false);
+import Link from "next/link";
+import Logo from "./Logo";
+import SearchModal from "./SearchModal";
+import Notifications from "./Notifications";
+import ProfileDropdown from "./ProfileDropdown";
+import Search from "../Search/Search";
+import SideBar from "./SideBar";
+
+const NavBar = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const router = useRouter();
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (isMenuOpen && !(event.target as HTMLElement).closest('.navbar')) {
-        setIsMenuOpen(false);
-        setIsOffcanvasOpen(false);
-      }
-    };
-
-    document.addEventListener("click", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, [isMenuOpen]);
-
   const toggleMenu = () => {
-    setIsMenuOpen(prevState => !prevState);
-    setIsOffcanvasOpen(true);
+    // Close sidebar and uncheck the hidden checkbox
+    if (isSidebarOpen) {
+      setIsSidebarOpen(false);
+      document.getElementById("menu-checkbox")?.click();
+    } else {
+      setIsSidebarOpen(true);
+    }
   };
 
-  const handleAlertClick = (alertType: string) => {
-    setSelectedAlert(prevAlert => prevAlert === alertType ? null : alertType);
-    setIsMenuOpen(false);
-    setIsOffcanvasOpen(false);
+  const closeMenu = () => {
+    setIsSidebarOpen(false);
+    document.getElementById("menu-checkbox")?.click();
   };
 
   const axiosInstance = axios.create({
@@ -72,78 +65,108 @@ export default function NavBar() {
       // Handle error (e.g., display error message to the user)
     }
   };
+
   return (
-    <div>
-      <div className="navbar bg-base-100 flex justify-between items-center">
-        {/* Left Avatar and Logo */}
-        <div className="hidden md:flex items-center ml-4">
-          <div tabIndex={0} className="btn btn-ghost btn-circle avatar mr-2 cursor-pointer" onClick={() => console.log('Left Avatar clicked')}>
-            <div className="w-10 rounded-full">
-              <img alt="Avatar" src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-            </div>
-          </div>
-          <a className="btn btn-ghost text-xl">Uni Connect</a>
-        </div>
-        <div className="w-1/3 md:w-auto"> {/* Adjust width for small screens */}
+    <header className="z-[99999]">
+      <div className="navbar fixed top-0 left-0 w-full bg-base-100 flex justify-between gap-4 items-center px-4 z-[99999]">
+        <Logo />
+
+        <div className="hidden xl:flex ml-8 justify-center flex-1">
+          {/* Search bar with modal search for small screen */}
           <Search />
         </div>
-        {/* Menu Icon for Small Screens */}
-        <div className="md:hidden" onClick={toggleMenu}>
-          <svg className={`h-6 w-6 text-white focus:outline-none transition duration-200 ease-in-out ${isOffcanvasOpen ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            {isMenuOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16m6 0H4m6 0v12m6-6h12m-6 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-            )}
-          </svg>
-        </div>
-        {/* Center Notification Icons - hidden on small screens */}
-        <div className="hidden md:flex gap-12 flex-grow justify-center">
-          <BsFillBellFill className={`text-3xl cursor-pointer ${selectedAlert === 'bell' ? 'text-primary' : ''}`} onClick={() => handleAlertClick('bell')} />
-          <FaHome className="text-3xl cursor-pointer" />
-          <FaFacebookMessenger className="text-3xl cursor-pointer" />
-          <RiUserFollowFill className="text-3xl cursor-pointer" />
-          <FaNewspaper className="text-3xl cursor-pointer" />
-        </div>
-        {/* Right Profile Dropdown */}
-        <div className="dropdown dropdown-end hidden md:block">
-          <div tabIndex={0} className="btn btn-ghost btn-circle avatar">
-            <div className="w-10 rounded-full">
-              <img alt="Avatar" src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+
+        {/* Center navigation link icons - hidden on small screens */}
+        <div className="hidden sm:flex gap-12 flex-grow flex-1 justify-center">
+          <SearchModal />
+
+          <div className="tooltip tooltip-bottom" data-tip="Home">
+            <Link href="/" className="btn btn-ghost btn-circle">
+              <IoHomeOutline className="text-2xl cursor-pointer" />
+            </Link>
+          </div>
+
+          <div className="tooltip tooltip-bottom" data-tip="News">
+            <Link href="/News" className="btn btn-ghost btn-circle">
+              <PiNewspaper className="text-2xl cursor-pointer" />
+            </Link>
+          </div>
+
+          <div className="tooltip tooltip-bottom" data-tip="Message">
+            <Link href="/message" className="btn btn-ghost btn-circle">
+              <IoChatbubbleEllipsesOutline className="text-2xl cursor-pointer" />
+            </Link>
+          </div>
+
+          <div className="dropdown dropdown-end">
+            <div
+              tabIndex={0}
+              role="button"
+              className="btn btn-ghost btn-circle"
+            >
+              <div
+                className="indicator tooltip tooltip-bottom"
+                data-tip="Notification"
+              >
+                <BsBell className="text-2xl" />
+                <span className="badge badge-sm indicator-item bg-blue-600 text-white">
+                  5
+                </span>
+              </div>
             </div>
+            <Notifications />
           </div>
-          <ul tabIndex={0} className="mt-3 p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
-            <li>
-              <Link href='/Profiles'>Profile</Link>
-            </li>
-            <li>
-              <Link href='/Setting'>Setting</Link>
-            </li>
-            <li>
-              <button onClick={handleLogout}>Logout</button>
-            </li>
-          </ul>
+
+          <div className="tooltip tooltip-bottom" data-tip="Uni-Connect">
+            <Link
+              href="/profile/uniconnect"
+              className="btn btn-ghost btn-circle"
+            >
+              <TbLetterU className="text-2xl cursor-pointer" />
+            </Link>
+          </div>
         </div>
+
+        {/* Right Profile Dropdown */}
+        <ProfileDropdown handler={handleLogout}/>
+
+        {/* Menu Icon for Small Screens */}
+        <button className="flex z-[9999] sm:hidden">
+          <label className="btn btn-ghost btn-circle swap swap-rotate">
+            {/* this hidden checkbox controls the state */}
+            <input id="menu-checkbox" type="checkbox" onClick={toggleMenu} />
+            {/* hamburger icon */}
+            <svg
+              className="swap-off fill-current"
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 512 512"
+            >
+              <path d="M64,384H448V341.33H64Zm0-106.67H448V234.67H64ZM64,128v42.67H448V128Z" />
+            </svg>
+            {/* close icon */}
+            <svg
+              className="swap-on fill-current"
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 512 512"
+            >
+              <polygon points="400 145.49 366.51 112 256 222.51 145.49 112 112 145.49 222.51 256 112 366.51 145.49 400 256 289.49 366.51 400 400 366.51 289.49 256 400 145.49" />
+            </svg>
+          </label>
+        </button>
       </div>
-      {/* Display selected alert component */}
-      {selectedAlert && (
-        <div className="w-96 h-48 rounded-lg bg-gray-800 flex justify-center items-center">
-          <AlertError />
-        </div>
-      )}
-      {/* Hidden Menu for Small Screens */}
-      {isOffcanvasOpen && (
-        <div className="md:hidden fixed top-0 bottom-0 right-0 left-0 h-full bg-black bg-opacity-50">
-          <div className="flex flex-col justify-center items-center h-full">
-            <BsFillBellFill className={`text-3xl cursor-pointer ${selectedAlert === 'bell' ? 'text-primary' : ''}`} onClick={() => handleAlertClick('bell')} />
-            <FaHome className="text-3xl cursor-pointer mt-6" />
-            <FaFacebookMessenger className="text-3xl cursor-pointer mt-6" />
-            <RiUserFollowFill className="text-3xl cursor-pointer mt-6" />
-            <FaNewspaper className="text-3xl cursor-pointer mt-6" />
-          </div>
-        </div>
-  
-      )}
-    </div>
+
+      {/* Hidden Sidebar Menu for Small Screens */}
+      <SideBar
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+        closeMenu={closeMenu}
+      />
+    </header>
   );
-}
+};
+
+export default NavBar;
