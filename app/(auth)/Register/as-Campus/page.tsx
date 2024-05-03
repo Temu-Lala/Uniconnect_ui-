@@ -1,9 +1,5 @@
-
-
-
-
-'use client'
-// components/NewUniversityProfileForm.js
+// components/NewCampusProfileForm.js
+"use client"
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -20,48 +16,51 @@ const NewCampusProfileForm = () => {
     about: '',
     location: '',
     group: '',
-    university_profile_id: ''
+    university_profile_id: '',
+    universities: [],
   });
 
   useEffect(() => {
-    // Fetch user ID from the server using the token
-    const fetchUserId = async () => {
+    const fetchUniversities = async () => {
       try {
-        const authToken = localStorage.getItem('token'); // Assuming you store the token in localStorage upon login
+        const authToken = localStorage.getItem('token');
         if (authToken) {
-          const response = await axios.get('http://127.0.0.1:8000/user-profile/', {
+          const response = await axios.get('http://127.0.0.1:8000/university-profiles/', {
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${authToken}` // Include the token in the Authorization header
+              'Authorization': `Bearer ${authToken}`
             },
           });
-          setFormData(prevFormData => ({ ...prevFormData, user_id: response.data.id }));
+          setFormData(prevFormData => ({
+            ...prevFormData,
+            universities: response.data
+          }));
         }
       } catch (error) {
-        console.error('Error fetching user ID:', error);
+        console.error('Error fetching universities:', error);
       }
     };
 
-    fetchUserId();
-  }, []); // Run only once on component mount
+    fetchUniversities();
+  }, []);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const authToken = localStorage.getItem('token'); // Assuming you store the token in localStorage upon login
+      const authToken = localStorage.getItem('token');
       if (authToken) {
         const response = await axios.post('http://127.0.0.1:8000/campus_profiles/', formData, {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}` // Include the token in the Authorization header
+            'Authorization': `Bearer ${authToken}`
           },
         });
-        console.log('University profile created:', response.data);
-        // Reset form fields after successful submission
+        console.log('Campus profile created:', response.data);
+        
         setFormData({
           name: '',
           bio: '',
@@ -74,87 +73,79 @@ const NewCampusProfileForm = () => {
           about: '',
           location: '',
           group: '',
-          university_profile_id: ''
+          university_profile_id: '',
+          universities: [],
         });
       }
     } catch (error) {
-      console.error('Error creating university profile:', error);
+      console.error('Error creating campus profile:', error);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>
-        Name:
-        <input type="text" name="name" value={formData.name} onChange={handleChange} />
-      </label>
-      <label>
-        Bio:
-        <textarea name="bio" value={formData.bio} onChange={handleChange} />
-      </label>
-      <label>
-        Link:
-        <input type="text" name="link" value={formData.link} onChange={handleChange} />
-      </label>
-      <label>
-        Establishment Date:
-        <input type="date" name="establishment_date" value={formData.establishment_date} onChange={handleChange} />
-      </label>
-      <label>
-        Number of Lectures:
-        <input type="number" name="number_of_lectures" value={formData.number_of_lectures} onChange={handleChange} />
-      </label>
-      <label>
-        Number of Departments:
-        <input type="number" name="number_of_departments" value={formData.number_of_departments} onChange={handleChange} />
-      </label>
-      <label>
-        Number of Campuses:
-        <input type="number" name="number_of_campuses" value={formData.number_of_campuses} onChange={handleChange} />
-      </label>
-      <label>
-        Number of Colleges:
-        <input type="number" name="number_of_colleges" value={formData.number_of_colleges} onChange={handleChange} />
-      </label>
-      <label>
-        About:
-        <textarea name="about" value={formData.about} onChange={handleChange} />
-      </label>
-      <label>
-        Location:
-        <input type="text" name="location" value={formData.location} onChange={handleChange} />
-      </label>
-      <label>
-        Group:
-        <input type="text" name="group" value={formData.group} onChange={handleChange} />
-      </label>
-      <button type="submit">Create University Profile</button>
-    </form>
+    <div>
+      <h2>Create Campus Profile</h2>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Name:
+          <input type="text" name="name" value={formData.name} onChange={handleChange} />
+        </label>
+        <label>
+          Bio:
+          <textarea name="bio" value={formData.bio} onChange={handleChange} />
+        </label>
+        <label>
+          Link:
+          <input type="text" name="link" value={formData.link} onChange={handleChange} />
+        </label>
+        <label>
+          Establishment Date:
+          <input type="date" name="establishment_date" value={formData.establishment_date} onChange={handleChange} />
+        </label>
+        <label>
+          Number of Lectures:
+          <input type="number" name="number_of_lectures" value={formData.number_of_lectures} onChange={handleChange} />
+        </label>
+        <label>
+          Number of Departments:
+          <input type="number" name="number_of_departments" value={formData.number_of_departments} onChange={handleChange} />
+        </label>
+        <label>
+          Number of Campuses:
+          <input type="number" name="number_of_campuses" value={formData.number_of_campuses} onChange={handleChange} />
+        </label>
+        <label>
+          Number of Colleges:
+          <input type="number" name="number_of_colleges" value={formData.number_of_colleges} onChange={handleChange} />
+        </label>
+        <label>
+          About:
+          <textarea name="about" value={formData.about} onChange={handleChange} />
+        </label>
+        <label>
+          Location:
+          <input type="text" name="location" value={formData.location} onChange={handleChange} />
+        </label>
+        <label>
+          Group:
+          <input type="text" name="group" value={formData.group} onChange={handleChange} />
+        </label>
+        <label>
+          University:
+          <select name="university_profile_id" value={formData.university_profile_id} onChange={handleChange}>
+  <option value="">Select University</option>
+  {formData.universities?.map(university => (
+    <option key={university.id} value={university.id}>{university.name}</option>
+  ))}
+</select>
+        </label>
+        <button type="submit">Create Campus Profile</button>
+      </form>
+    </div>
   );
 };
 
 export default NewCampusProfileForm;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
