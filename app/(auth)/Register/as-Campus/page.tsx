@@ -83,7 +83,7 @@ const NewCampusProfileForm = () => {
   };
 
   return (
-    <div>
+    <div className=' pt-96'>
       <h2>Create Campus Profile</h2>
       <form onSubmit={handleSubmit}>
         <label>

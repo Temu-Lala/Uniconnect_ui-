@@ -135,7 +135,7 @@ const NewDepartmentProfileForm = () => {
   };
 
   return (
-    <div>
+    <div className=' pt-96'>
       <h2>Create College Profile</h2>
       <form onSubmit={handleSubmit}>
         {error && <div style={{ color: 'red' }}>{error}</div>}

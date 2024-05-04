@@ -20,7 +20,8 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      
+      const authToken = localStorage.getItem('token');
+
       const response = await fetch('http://127.0.0.1:8000/signup/', {
         method: 'POST',
         headers: {
@@ -43,7 +44,7 @@ export default function Register() {
   };
 
   return (
-    <div>
+    <div className=' pt-56'>
       <h1>User Registration</h1>
       <form onSubmit={handleSubmit}>
         <div>

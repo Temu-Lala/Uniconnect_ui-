@@ -1,5 +1,3 @@
-
-
 "use client"
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -12,7 +10,6 @@ const NewLecturerCVProfileForm = () => {
     department_profile_id: '',
     avatar: null,
     name: '',
-    department: '',
     location: '',
     job_title: '',
     skills1: '',
@@ -106,43 +103,182 @@ const NewLecturerCVProfileForm = () => {
     setFormData({ ...formData, department_profile_id: departmentId });
   };
 
+  const handleChange = async (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    if (name === 'university_id') { 
+      try {
+        const authToken = localStorage.getItem('token');
+        const selectedUniversityId = value;
+        const response = await axios.get(`http://127.0.0.1:8000/university-profiles/${selectedUniversityId}/campus-profiles/`,{
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+        });
+        const campuses = response.data;
+        setFormData(prevFormData => ({
+          ...prevFormData,
+          campus_profile_id: '', 
+          college_profile_id: '', // Reset selected college ID when changing university
+          campuses: campuses
+        }));
+      } catch (error) {
+        console.error('Error fetching campuses:', error);
+      }
+    }
+
+    if (name === 'campus_profile_id') { 
+      try {
+        const authToken = localStorage.getItem('token');
+        const selectedCampusId = value;
+        const response = await axios.get(`http://127.0.0.1:8000/campus-profiles/${selectedCampusId}/college-profiles/`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+        });
+        const colleges = response.data;
+        setFormData(prevFormData => ({
+          ...prevFormData,
+          college_profile_id: '', 
+          colleges: colleges
+        }));
+      } catch (error) {
+        console.error('Error fetching colleges:', error);
+      }
+    }
+
+    if (name === 'college_profile_id') { // Fixed condition name
+      try {
+        const authToken = localStorage.getItem('token');
+        const collegeId = value;
+        const response = await axios.get(`http://127.0.0.1:8000/college-profiles/${collegeId}/department-profiles/`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+        });
+        const departments = response.data; // Changed variable name to departments
+        setFormData(prevFormData => ({
+          ...prevFormData,
+          department_profile_id: '', // Reset selected department ID when changing college
+          departments: departments // Changed variable name to departments
+        }));
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const authToken = localStorage.getItem('token');
-      if (!authToken) {
-        setError('Authentication token not found. Please log in.');
-        return;
+      if (authToken) {
+        // Add additional fields to the formData object
+        const updatedFormData = {
+          ...formData,
+          
+              university_profile: formData.university_id,
+        campus_profile: formData.campus_profile_id,
+        college_profile: formData.college_profile_id,
+        department_profile: formData.department_profile_id,
+        avatar: formData.avatar,
+        name: formData.name,
+    location: formData.location,
+    job_title: formData.job_title,
+    skills1: formData.skills1,
+    skills2: formData.skills2,
+    skills3: formData.skills3,
+    skills4: formData.skills4,
+    about: formData.about,
+    phone: formData.phone,
+    email: formData.email,
+    linkedin: formData.linkedin,
+    education_background: formData.education_background,
+    background_description: formData.background_description,
+    education_background2: formData.education_background2,
+    background_description2: formData.background_description2,
+    education_background3: formData.education_background3,
+    background_description3: formData.background_description3,
+    languages: formData.languages,
+    languages2: formData.languages2,
+    languages3: formData.languages3,
+    professional_experience: formData.professional_experience,
+    professional_experience2: formData.professional_experience2,
+    professional_experience3: formData.professional_experience3,
+    key_responsibilities: formData.key_responsibilities,
+    key_responsibilities2: formData.key_responsibilities2,
+    key_responsibilities3: formData.key_responsibilities2,
+    project1: formData.project1,
+    project_description1: formData.project_description1,
+    project2: formData.project2,
+    project_description2: formData.project_description2,
+    project3: formData.project3,
+    project_description3: formData.project_description3};
+  
+        const response = await axios.post('http://127.0.0.1:8000/create-lecturer-cv/', updatedFormData, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+        });
+        console.log('Department profile created:', response.data);
+        
+        // Reset form data after successful submission
+        setFormData({
+          university_id: '',
+          campus_profile_id: '',
+          college_profile_id: '',
+          department_profile_id: '',
+          avatar: null,
+          name: '',
+          location: '',
+          job_title: '',
+          skills1: '',
+          skills2: '',
+          skills3: '',
+          skills4: '',
+          about: '',
+          phone: '',
+          email: '',
+          linkedin: '',
+          education_background: '',
+          background_description: '',
+          education_background2: '',
+          background_description2: '',
+          education_background3: '',
+          background_description3: '',
+          languages: '',
+          languages2: '',
+          languages3: '',
+          professional_experience: '',
+          professional_experience2: '',
+          professional_experience3: '',
+          key_responsibilities: '',
+          key_responsibilities2: '',
+          key_responsibilities3: '',
+          project1: '',
+          project_description1: '',
+          project2: '',
+          project_description2: '',
+          project3: '',
+          project_description3: ''
+        });
       }
-
-      const user = localStorage.getItem('user_id'); // Get user ID from local storage
-      const { university_id, campus_profile_id, college_profile_id, department_profile_id, ...otherData } = formData;
-
-      const response = await axios.post('http://127.0.0.1:8000/lecturer-cv/', {
-        ...otherData,
-        university: university_id,
-        campus: campus_profile_id,
-        college: college_profile_id,
-        department: department_profile_id,
-        user: user,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        }
-      });
-      
-      console.log('Lecturer CV profile created:', response.data);
-      setSuccessMessage('Lecturer CV profile created successfully.');
     } catch (error) {
-      console.error('Error creating Lecturer CV profile:', error);
-      setError('Error creating Lecturer CV profile. Please try again.');
+      console.error('Error creating department profile:', error);
+      setError('Error creating department profile. Please try again.');
     }
   };
   
+
+  
+
   return (
-    <div>
-        <h2>Create LecturerCV Profile</h2>
+    <div className=' pt-72'>
       <form onSubmit={handleSubmit}>
         {error && <div style={{ color: 'red' }}>{error}</div>}
         {successMessage && <div style={{ color: 'green' }}>{successMessage}</div>}
@@ -183,124 +319,153 @@ const NewLecturerCVProfileForm = () => {
           </select>
         </label>
         {/* Input fields for other profile details */}
+        {/* Input fields for other profile details */}
         <label>
           Name:
-          <input type="text" name="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+          <input type="text" name="name" value={formData.name}   onChange={handleChange} />
         </label>
         <label>
           Location:
-          <input type="text" name="location" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
+          <input type="text" name="location" value={formData.location}   onChange={handleChange} />
         </label>
         <label>
           Job Title:
-          <input type="text" name="job_title" value={formData.job_title} onChange={(e) => setFormData({ ...formData, job_title: e.target.value })} />
+          <input type="text" name="job_title" value={formData.job_title}   onChange={handleChange}/>
         </label>
 
-
-
-
-
-
-
-
-
+        {/* Additional input fields for other profile details */}
+        
+        {/* Skills */}
         <label>
-        skills1          <input type="text" name="job_title" value={formData.skills1} onChange={(e) => setFormData({ ...formData, skills1: e.target.value })} />
-        </label> <label>
-          Job Title:
-          <input type="text" name="job_title" value={formData.job_title} onChange={(e) => setFormData({ ...formData, job_title: e.target.value })} />
-        </label> <label>
-        skills2          <input type="text" name="skills2" value={formData.skills2} onChange={(e) => setFormData({ ...formData, skills2: e.target.value })} />
-        </label> <label>
-          Job Title:
-          <input type="text" name="skills3" value={formData.skills3} onChange={(e) => setFormData({ ...formData, skills3: e.target.value })} />
-        </label> <label>
-        skills4          <input type="text" name="skills4" value={formData.skills4} onChange={(e) => setFormData({ ...formData, skills4: e.target.value })} />
-        </label> <label>
-        about          <input type="text" name="about" value={formData.about} onChange={(e) => setFormData({ ...formData, about: e.target.value })} />
-        </label>  <label>
+          Skills 1:
+          <input type="text" name="skills1" value={formData.skills1}   onChange={handleChange}/>
+        </label>
+        <label>
+          Skills 2:
+          <input type="text" name="skills2" value={formData.skills2}  onChange={handleChange} />
+        </label>
+        <label>
+          Skills 3:
+          <input type="text" name="skills3" value={formData.skills3}  onChange={handleChange} />
+        </label>
+        <label>
+          Skills 4:
+          <input type="text" name="skills4" value={formData.skills4}  onChange={handleChange} />
+        </label>
+        
+        {/* About */}
+        <label>
+          About:
+          <input type="text" name="about" value={formData.about} onChange={handleChange} />
+        </label>
+
+        {/* Contact Information */}
+        <label>
           Phone:
-          <input type="text" name="phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
-        </label> <label>
-        email          <input type="text" name="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
-        </label> <label>
-        linkedin          <input type="text" name="linkedin" value={formData.linkedin} onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })} />
-        </label> <label>
-        education_background          <input type="text" name="education_background" value={formData.education_background} onChange={(e) => setFormData({ ...formData, education_background: e.target.value })} />
-        </label>
-
-
-
-        <label>
-        background_description          <input type="text" name="background_description" value={formData.background_description} onChange={(e) => setFormData({ ...formData, background_description: e.target.value })} />
-        </label>
-
-        <label>
-        education_background2          <input type="text" name="education_background2" value={formData.education_background2} onChange={(e) => setFormData({ ...formData, education_background2: e.target.value })} />
+          <input type="text" name="phone" value={formData.phone}  onChange={handleChange}/>
         </label>
         <label>
-        background_description2          <input type="text" name="background_description2" value={formData.background_description2} onChange={(e) => setFormData({ ...formData, background_description2: e.target.value })} />
+          Email:
+          <input type="text" name="email" value={formData.email}  onChange={handleChange}/>
         </label>
         <label>
-        education_background3          <input type="text" name="education_background3" value={formData.education_background3} onChange={(e) => setFormData({ ...formData, education_background3: e.target.value })} />
+          LinkedIn:
+          <input type="text" name="linkedin" value={formData.linkedin}  onChange={handleChange}/>
+        </label>
+
+        {/* Education Background */}
+        <label>
+          Education Background:
+          <input type="text" name="education_background" value={formData.education_background}  onChange={handleChange}/>
         </label>
         <label>
-        background_description3          <input type="text" name="background_description3" value={formData.background_description3} onChange={(e) => setFormData({ ...formData, background_description3: e.target.value })} />
+          Background Description:
+          <input type="text" name="background_description" value={formData.background_description} onChange={handleChange} />
         </label>
         <label>
-        languages          <input type="text" name="languages" value={formData.languages} onChange={(e) => setFormData({ ...formData, languages: e.target.value })} />
+          Education Background 2:
+          <input type="text" name="education_background2" value={formData.education_background2}   onChange={handleChange}/>
         </label>
-
-
-
-
         <label>
-        languages2          <input type="text" name="languages2" value={formData.languages2} onChange={(e) => setFormData({ ...formData, languages2: e.target.value })} />
-        </label>        <label>
-        languages3          <input type="text" name="languages" value={formData.languages3} onChange={(e) => setFormData({ ...formData, languages3: e.target.value })} />
-        </label>              <label>
-        professional_experience          <input type="text" name="professional_experience" value={formData.professional_experience} onChange={(e) => setFormData({ ...formData, professional_experience: e.target.value })} />
-        </label>        <label>
-        professional_experience2          <input type="text" name="professional_experience2" value={formData.professional_experience2} onChange={(e) => setFormData({ ...formData, professional_experience2: e.target.value })} />
-        </label>        <label>
-        professional_experience3          <input type="text" name="professional_experience3" value={formData.professional_experience3} onChange={(e) => setFormData({ ...formData, professional_experience3: e.target.value })} />
-        </label>        <label>
-        key_responsibilities          <input type="text" name="key_responsibilities" value={formData.key_responsibilities} onChange={(e) => setFormData({ ...formData, key_responsibilities: e.target.value })} />
+          Background Description 2:
+          <input type="text" name="background_description2" value={formData.background_description2} onChange={handleChange} />
         </label>
-
-
-
-
-
-
         <label>
-        key_responsibilities2          <input type="text" name="key_responsibilities2" value={formData.key_responsibilities2} onChange={(e) => setFormData({ ...formData, key_responsibilities2: e.target.value })} />
-        </label>        <label>
-        key_responsibilities3          <input type="text" name="key_responsibilities3" value={formData.key_responsibilities3} onChange={(e) => setFormData({ ...formData, key_responsibilities3: e.target.value })} />
-        </label>        <label>
-        project1          <input type="text" name="project1" value={formData.project1} onChange={(e) => setFormData({ ...formData, project1: e.target.value })} />
-        </label>        <label>
-        project_description1          <input type="text" name="project_description1" value={formData.project_description1} onChange={(e) => setFormData({ ...formData, project_description1: e.target.value })} />
-        </label>        <label>
-        project2          <input type="text" name="project2" value={formData.project2} onChange={(e) => setFormData({ ...formData, project2: e.target.value })} />
-        </label>        <label>
-        project_description2          <input type="text" name="project_description2" value={formData.project_description2} onChange={(e) => setFormData({ ...formData, project_description2: e.target.value })} />
-        </label>        <label>
-        project3          <input type="text" name="project3" value={formData.project3} onChange={(e) => setFormData({ ...formData, project3: e.target.value })} />
-        </label>        <label>
-        project_description3          <input type="text" name="project_description3" value={formData.project_description3} onChange={(e) => setFormData({ ...formData, project_description3: e.target.value })} />
+          Education Background 3:
+          <input type="text" name="education_background3" value={formData.education_background3}  onChange={handleChange} />
+        </label>
+        <label>
+          Background Description 3:
+          <input type="text" name="background_description3" value={formData.background_description3}   onChange={handleChange}/>
         </label>
 
+        {/* Language Skills */}
+        <label>
+          Languages:
+          <input type="text" name="languages" value={formData.languages}  onChange={handleChange} />
+        </label>
+        <label>
+          Languages 2:
+          <input type="text" name="languages2" value={formData.languages2}  onChange={handleChange} />
+        </label>
+        <label>
+          Languages 3:
+          <input type="text" name="languages3" value={formData.languages3} onChange={handleChange}  />
+        </label>
 
+        {/* Professional Experience */}
+        <label>
+          Professional Experience:
+          <input type="text" name="professional_experience" value={formData.professional_experience}  onChange={handleChange} />
+        </label>
+        <label>
+          Professional Experience 2:
+          <input type="text" name="professional_experience2" value={formData.professional_experience2}  onChange={handleChange} />
+        </label>
+        <label>
+          Professional Experience 3:
+          <input type="text" name="professional_experience3" value={formData.professional_experience3} onChange={handleChange} />
+        </label>
 
+        {/* Key Responsibilities */}
+        <label>
+          Key Responsibilities:
+          <input type="text" name="key_responsibilities" value={formData.key_responsibilities}  onChange={handleChange} />
+        </label>
+        <label>
+          Key Responsibilities 2:
+          <input type="text" name="key_responsibilities2" value={formData.key_responsibilities2} onChange={handleChange} />
+        </label>
+        <label>
+          Key Responsibilities 3:
+          <input type="text" name="key_responsibilities3" value={formData.key_responsibilities3}  onChange={handleChange}/>
+        </label>
 
-
-
-
-
-
-
-
+        {/* Projects */}
+        <label>
+          Project 1:
+          <input type="text" name="project1" value={formData.project1}   onChange={handleChange}/>
+        </label>
+        <label>
+          Project Description 1:
+          <input type="text" name="project_description1" value={formData.project_description1}  onChange={handleChange} />
+        </label>
+        <label>
+          Project 2:
+          <input type="text" name="project2" value={formData.project2}  onChange={handleChange} />
+        </label>
+        <label>
+          Project Description 2:
+          <input type="text" name="project_description2" value={formData.project_description2}  onChange={handleChange}/>
+        </label>
+        <label>
+          Project 3:
+          <input type="text" name="project3" value={formData.project3}   onChange={handleChange}/>
+        </label>
+        <label>
+          Project Description 3:
+          <input type="text" name="project_description3" value={formData.project_description3}  onChange={handleChange}/>
+        </label>
 
         <button type="submit">Create LecturerCV Profile</button>
       </form>
@@ -309,9 +474,6 @@ const NewLecturerCVProfileForm = () => {
 };
 
 export default NewLecturerCVProfileForm;
-
-
-
 
 
 
