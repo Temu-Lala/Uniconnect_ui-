@@ -40,7 +40,7 @@ export default function Login() {
   };
 
   return (
-    <div>
+    <div className='mt-48'>
       <h1>User Login</h1>
       <form onSubmit={handleSubmit}>
         <div>

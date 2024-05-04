@@ -26,7 +26,7 @@ export const notificationData: Notification[] = [
     {
       id: "003",
       name: "Temesgen",
-      notification: "added a post you haven't seen",
+      notification: " just posted a twerking video",
       time: "5",
       imgPath: "/images/lectures/temesgen.jfif",
       type: "lecture"

@@ -2,7 +2,8 @@ import NewsFeed from "./News/page";
 import Footer from "../Components/Footer/Footer";
 import LecturesList from './LecturesList/page';
 import NavBar from "../Components/NavBar/NavBar";
-import React from 'react';
+import NewPost from "./News/NewPost";
+import React from 'react'; 
 
 export default function Home() {
   return (
@@ -16,7 +17,8 @@ export default function Home() {
           <LecturesList />
         </div>
         {/* News feed */}
-        <div className="overflow-y-auto max-h-screen w-full lg:w-1/2 mx-4">
+        <div className=" w-full lg:w-1/2 mx-4">
+          <NewPost />
           <NewsFeed />
         </div>
         {/* Right section */}

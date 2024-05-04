@@ -14,6 +14,7 @@ import Notifications from "./Notifications";
 import ProfileDropdown from "./ProfileDropdown";
 import Search from "../Search/Search";
 import SideBar from "./SideBar";
+import ThemeToggler from "../ThemeToggler/ThemeToggler";
 
 const NavBar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
@@ -68,7 +69,7 @@ const NavBar = () => {
 
   return (
     <header className="z-[99999]">
-      <div className="navbar fixed top-0 left-0 w-full bg-base-100 flex justify-between gap-4 items-center px-4 z-[99999]">
+      <div className="navbar fixed top-0 left-0 w-full bg-base-100 dark:bg-slate-400 flex justify-between gap-4 items-center px-4 z-[99999]">
         <Logo />
 
         <div className="hidden xl:flex ml-8 justify-center flex-1">
@@ -125,6 +126,7 @@ const NavBar = () => {
               <TbLetterU className="text-2xl cursor-pointer" />
             </Link>
           </div>
+          <ThemeToggler />
         </div>
 
         {/* Right Profile Dropdown */}
