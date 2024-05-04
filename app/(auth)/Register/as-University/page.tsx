@@ -80,6 +80,7 @@ const NewUniversityProfileForm = () => {
 
   return (
     <form onSubmit={handleSubmit}>
+      <div className=' pt-96'>
       <label>
         Name:
         <input type="text" name="name" value={formData.name} onChange={handleChange} />
@@ -125,6 +126,7 @@ const NewUniversityProfileForm = () => {
         <input type="text" name="group" value={formData.group} onChange={handleChange} />
       </label>
       <button type="submit">Create University Profile</button>
+      </div>
     </form>
   );
 };

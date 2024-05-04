@@ -1,31 +1,59 @@
 "use client"
 import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import EmojiPicker from 'emoji-picker-react';
-import { MdEmojiEmotions } from "react-icons/md";
+import { MdEmojiEmotions } from 'react-icons/md';
 
 // Contact List Component
 const ContactList = ({ onContactSelect }) => {
-  // Dummy data for contacts
-  const contacts = [
-    { id: 1, name: 'John Doe', avatar: 'https://via.placeholder.com/40' },
-    { id: 2, name: 'Jane Smith', avatar: 'https://via.placeholder.com/40' },
-    { id: 3, name: 'Alice Johnson', avatar: 'https://via.placeholder.com/40' },
-    { id: 4, name: 'Bob Williams', avatar: 'https://via.placeholder.com/40' },
-    { id: 5, name: 'Eve Brown', avatar: 'https://via.placeholder.com/40' },
-  ];
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+
+  const handleSearch = async () => {
+    try {
+      const authToken = localStorage.getItem('token');
+
+      const response = await axios.get(`http://127.0.0.1:8000/GustUser/?search=${searchTerm}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+      });
+      setSearchResults(response.data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (searchTerm) {
+      handleSearch();
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchTerm]);
 
   const handleContactClick = (contact) => {
     onContactSelect(contact);
+    // Store the selected contact in local storage
+    localStorage.setItem('selectedContact', JSON.stringify(contact));
   };
 
   return (
     <div className="w-1/4 bg-gray-200 p-4 overflow-y-auto">
       <h2 className="text-lg font-bold mb-4">Contacts</h2>
+      <input
+        type="text"
+        placeholder="Search users..."
+        className="border border-gray-300 rounded-full px-3 py-1 mb-4 w-full"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
       <ul>
-        {contacts.map(contact => (
+        {searchResults.map(contact => (
           <li key={contact.id} className="flex items-center py-2 hover:bg-gray-300 cursor-pointer" onClick={() => handleContactClick(contact)}>
             <img className="w-8 h-8 rounded-full mr-2" src={contact.avatar} alt="Avatar" />
-            <span className="text-gray-800">{contact.name}</span>
+            <span className="text-gray-800">{contact.username}</span>
           </li>
         ))}
       </ul>
@@ -37,120 +65,124 @@ const ContactList = ({ onContactSelect }) => {
 const ChatApp = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
-  const [showChatOptions, setShowChatOptions] = useState(false);
-  const [isContactSelected, setIsContactSelected] = useState(false); // New state variable
+  const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
   const messagesEndRef = useRef(null);
-  const emojiPickerRef = useRef(null); // Ref for emoji picker
-
-  // Dummy initial messages for demonstration
-  useEffect(() => {
-    setMessages([
-      { id: 1, text: 'Hey there!', sender: 'user' },
-      { id: 2, text: 'Hi! How can I help you?', sender: 'bot' },
-    ]);
-  }, []);
-
-  // Function to handle sending a message
-  const sendMessage = () => {
-    if (newMessage.trim() === '') return; // Ignore empty messages
-    const message = {
-      id: messages.length + 1,
-      text: newMessage.trim(),
-      sender: 'user',
-    };
-    setMessages([...messages, message]);
-    setNewMessage('');
+  const emojiPickerRef = useRef(null);
+  const authToken = localStorage.getItem('token');
+  const senderId = authToken ? JSON.parse(atob(authToken.split('.')[1])).user_id : null;
+  
+  const fetchMessages = async (recipientId) => {
+    try {
+      const response = await axios.get(`http://127.0.0.1:8000/messages/user_messages/?recipient_id=${recipientId}&sender_id=${senderId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+      });
+  
+      setMessages(response.data);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
   };
-
-  // Function to handle emoji selection
-  const handleEmojiClick = emoji => {
-    const emojiUnicode = emoji.emoji;
-    setNewMessage(prevMessage => prevMessage + emojiUnicode);
+  
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !selectedContact) return;
+  
+    try {
+      const response = await axios.post(
+        `http://127.0.0.1:8000/messages/send_message/`,
+        {
+          content: newMessage.trim(),
+          recipient_id: selectedContact.id // Use selectedContact.id for recipient_id
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+        }
+      );
+  
+      setMessages([...messages, response.data]);
+      setNewMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
-
-  // Function to handle contact selection
-  const handleContactSelect = (contact) => {
+  
+  const handleContactSelect = async (contact) => {
     setSelectedContact(contact);
-    setShowChatOptions(true);
-    setIsContactSelected(true); // Set the flag to indicate contact selection
+    await fetchMessages(contact.id);
+    // Store the selected contact in local storage
+    localStorage.setItem('selectedContact', JSON.stringify(contact));
   };
 
-  // Close emoji picker when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target) && emojiPickerVisible) {
         setEmojiPickerVisible(false);
       }
     };
-    
+
     document.addEventListener('click', handleClickOutside);
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
   }, [emojiPickerVisible]);
 
-  // Scroll to the latest message when new message arrives
+  useEffect(() => {
+    // Retrieve the selected contact from local storage on component mount
+    const storedContact = JSON.parse(localStorage.getItem('selectedContact'));
+    if (storedContact) {
+      setSelectedContact(storedContact);
+      fetchMessages(storedContact.id);
+    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const handleEmojiClick = emoji => {
+    const emojiUnicode = emoji.emoji;
+    setNewMessage(prevMessage => prevMessage + emojiUnicode);
+  };
+
   return (
     <div className="flex bg-gray-100 text-black min-h-screen">
-      {/* Contact List */}
       <ContactList onContactSelect={handleContactSelect} />
 
-      {/* Chat Section - Render only if a contact is selected */}
-      {isContactSelected && (
+      {selectedContact ? (
         <div className="w-3/4 flex flex-col">
           <div className="bg-white rounded-lg shadow-md overflow-hidden flex-1 relative">
-            {/* Chat header */}
             <div className="bg-teal-500 text-white p-4 flex justify-between items-center">
+              <p className="font-bold">{selectedContact.name}</p>
               <div className="flex items-center">
-                {selectedContact && (
-                  <>
-                    <img className="w-10 h-10 rounded-full mr-2" src={selectedContact.avatar} alt="Avatar" />
-                    <p className="font-bold">{selectedContact.name}</p>
-                  </>
-                )}
-              </div>
-              <div className="flex items-center">
-                {showChatOptions && (
-                  <>
-                    <button className="mr-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                        {/* Add SVG for video call */}
-                      </svg>
-                    </button>
-                    <button className="mr-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                        {/* Add SVG for voice call */}
-                      </svg>
-                    </button>
-                  </>
-                )}
                 <button onClick={() => setEmojiPickerVisible(!emojiPickerVisible)}>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                    {/* Add SVG for emoji */}
-                  </svg>
+                  <MdEmojiEmotions />
                 </button>
               </div>
             </div>
 
-            {/* Chat messages */}
-            <div className="px-4 py-2  overflow-y-auto" style={{ maxHeight: '60vh' }}>
-              {messages.map(message => (
-                <div key={message.id} className={`flex mb-4 ${message.sender === 'user' ? ' justify-end' : 'justify-start'}`}>
-                  <div className={`bg-${message.sender === 'user' ? 'teal' : 'gray'}-100 text-gray-800 p-3 rounded-lg max-w-md ${message.sender === 'user' && message.text.includes('emoji') ? 'text-2xl' : ''}`}>
-                    <p className="text-sm ">{message.text}</p>
+            <div className="px-4 py-2 overflow-y-auto max-h-96">
+              {messages.length === 0 ? (
+                <p className="text-center text-gray-500 py-4">Welcome to Messenger</p>
+              ) : (
+                messages.map((message, index) => (
+                  <div key={index} className={`flex mb-4 ${message.sender === senderId ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`bg-${message.sender === senderId ? 'teal' : 'gray'}-100 text-gray-800 p-3 rounded-lg max-w-md ${message.sender === senderId && message.content && message.content.includes('emoji') ? 'text-2xl' : ''}`}>
+                      <p className="text-sm">{message.content}</p> {/* Use 'content' instead of 'text' */}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
+
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Emoji Picker */}
             {emojiPickerVisible && (
               <div ref={emojiPickerRef} className="absolute bottom-10 right-0 z-10 bg-white p-4 shadow-lg">
                 <EmojiPicker onEmojiClick={handleEmojiClick} />
@@ -158,24 +190,16 @@ const ChatApp = () => {
             )}
           </div>
 
-          {/* Chat input */}
           <div className="bg-white p-4">
             <div className="flex items-center relative">
               <input
-                className="flex-1 min-w-0 border border-gray-300 rounded-full px-12 py-2 mr-2 focus:outline-none"
+                className="flex-1 min-w-0 border border-gray-300 rounded-full px-4 py-2 mr-2 focus:outline-none"
                 type="text"
                 placeholder="Type your message..."
                 value={newMessage}
                 onChange={e => setNewMessage(e.target.value)}
                 onKeyPress={e => e.key === 'Enter' && sendMessage()}
               />
-              <button
-                className="absolute left-4 bg-black border-none outline-none focus:outline-none"
-                onClick={() => setEmojiPickerVisible(!emojiPickerVisible)}
-              >
-                               <MdEmojiEmotions/>
-
-              </button>
               <button
                 className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-6 rounded-full"
                 onClick={sendMessage}
@@ -184,6 +208,10 @@ const ChatApp = () => {
               </button>
             </div>
           </div>
+        </div>
+      ) : (
+        <div className="w-3/4 flex items-center justify-center">
+          <p className="text-center text-gray-500 py-4">Welcome to Messenger</p>
         </div>
       )}
     </div>
