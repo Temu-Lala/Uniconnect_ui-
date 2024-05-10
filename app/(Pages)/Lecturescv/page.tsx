@@ -58,7 +58,7 @@ export default function Page() {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/lecturer-cvs/');
+      const response = await axios.get('http://127.0.0.1:8000/lecturer-cv/');
       setData(response.data);
     } catch (error) {
       console.error('Error fetching data:', error);

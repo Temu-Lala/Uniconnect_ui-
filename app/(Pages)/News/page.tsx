@@ -3,12 +3,16 @@ import React, { useState, useEffect, ChangeEvent } from 'react';
 import { FaThumbsUp, FaThumbsDown, FaShare, FaEdit } from 'react-icons/fa';
 import Avater from '../../Components/Avater/Avater';
 import ThemeController from '@/app/Components/ThemController/ThemController';
+import Link from 'next/link';
 
 interface NewsItem {
   id: number;
   ownerName: string;
   owner: string;
   title: string;
+  content: string;
+  link: string;
+  created_at: string;
   date: string;
   imageUrls: string[];
   likes: number;
@@ -38,7 +42,8 @@ const NewsFeed = () => {
         fetch('http://127.0.0.1:8000/college-posts/'),
         fetch('http://127.0.0.1:8000/campus-posts/'),
         fetch('http://127.0.0.1:8000/university-posts/'),
-        fetch('http://127.0.0.1:8000/department-posts/')
+        fetch('http://127.0.0.1:8000/department-posts/'),
+        fetch('http://127.0.0.1:8000/lecturer-posts/')
       ]);
   
       if (!responses.every(resp => resp.ok)) {
@@ -51,17 +56,15 @@ const NewsFeed = () => {
         items.map(item => formatPostItem(item, ['college', 'campus', 'university', 'department'][index]))
       );
   
+      // Fetch comments for each post individually
       const postCommentsPromises = formattedData.map(async (item) => {
-        if (!item.comments.length) {
-          const response = await fetch(`http://127.0.0.1:8000/comments/?postId=${item.id}&postType=${item.type}`);
-          if (!response.ok) {
-            throw new Error(`Failed to fetch comments for post ${item.id}`);
-          }
-          const comments = await response.json();
-          return { ...item, comments };
-        } else {
-          return item;
+        const response = await fetch(`http://127.0.0.1:8000/comments/?postId=${item.id}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch comments for post ${item.id}`);
         }
+        const comments = await response.json();
+        const specificComments = comments.filter(comment => comment.post_id === item.id);
+        return { ...item, comments: specificComments };
       });
   
       const postComments = await Promise.all(postCommentsPromises);
@@ -72,6 +75,7 @@ const NewsFeed = () => {
       setError('Failed to fetch news feed. Please try again later.');
     }
   };
+  
   
   const fetchUsers = async () => {
     try {
@@ -105,13 +109,17 @@ const NewsFeed = () => {
     }
   };
 
+
   const formatPostItem = (item: any, type: string): NewsItem => {
-    const ownerName = users[item.owner] ? users[item.owner].username : 'Unknown';
+    const ownerName = item.user ? item.user.username : 'Unknown';
     return {
       id: item.id,
-      owner: item.owner,
+      owner: item.user,
       ownerName: ownerName,
-      title: item.content,
+      title: item.title,
+      link: item.link,
+      content: item.content,
+      created_at: item.created_at,
       date: item.created_on,
       imageUrls: [item.file],
       likes: item.likes,
@@ -124,12 +132,12 @@ const NewsFeed = () => {
       comments: []
     };
   };
-
   const handleCommentChange = (postId: number, e: ChangeEvent<HTMLTextAreaElement>) => {
     setComments({ ...comments, [postId]: e.target.value });
   };
-
-  const handleCommentSubmit = async (postId: number, postType: string) => {
+  const handleCommentSubmit = async (postId: number, postType: string, e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault(); // Prevent default form submission
+    
     try {
       const newCommentTrimmed = comments[postId]?.trim();
       if (newCommentTrimmed) {
@@ -150,11 +158,12 @@ const NewsFeed = () => {
             commentText: newCommentTrimmed,
           }),
         });
-    
+        
         if (!response.ok) {
           throw new Error('Failed to add comment');
         }
-    
+  
+        // Fetch only the comments for the specific post after adding the new comment
         const updatedCommentsResponse = await fetch(`http://127.0.0.1:8000/comments/?postId=${postId}&postType=${postType}`);
         if (!updatedCommentsResponse.ok) {
           throw new Error(`Failed to fetch updated comments for post ${postId}`);
@@ -177,7 +186,10 @@ const NewsFeed = () => {
       setError('Failed to add comment. Please try again later.');
     }
   };
-
+  
+  
+  
+  
   const handleLike = async (postId: number) => {
     const authToken = localStorage.getItem('token');
 
@@ -233,14 +245,14 @@ const NewsFeed = () => {
     );
   };
 
-  const loadMoreComments = async (postId, postType, lastCommentTimestamp) => {
+  const loadMoreComments = async (postId, lastCommentTimestamp) => {
     try {
       const post = newsItems.find(item => item.id === postId);
       if (!post) {
         throw new Error(`Post with ID ${postId} not found`);
       }
 
-      const response = await fetch(`http://127.0.0.1:8000/comments/?postId=${postId}&postType=${postType}&lastCommentTimestamp=${lastCommentTimestamp}`);
+      const response = await fetch(`http://127.0.0.1:8000/comments/?postId=${postId}&lastCommentTimestamp=${lastCommentTimestamp}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch more comments for post ${postId}`);
       }
@@ -344,7 +356,6 @@ const NewsFeed = () => {
       setError('Failed to send edited comment. Please try again later.');
     }
   };
-  
   return (
     <div className="scrollbar-hide h-full overflow-y-auto p-8">
     {newsItems.map((item) => (
@@ -360,7 +371,10 @@ const NewsFeed = () => {
           </div>
         </div>
         <h2 className="text-xl font-bold mb-2">{item.title}</h2>
-        <p className="text-gray-400 mb-2">{item.date}</p>
+        <p className="text-gray-400 mb-2">{item.created_at }</p>
+        <p className="text-xl mb-2">{item.content }</p>
+        <a href={item.link} className="text-xl to-blue-800 mb-2">{item.link}</a>
+        
         {/* Display images */}
         <div className="grid grid-cols-3 gap-4 mb-4">
           {item.imageUrls && Array.isArray(item.imageUrls) && item.imageUrls.map((imageUrl, index) => (
@@ -381,37 +395,19 @@ const NewsFeed = () => {
         </div>
         {/* Display comments */}
         {item.showAllComments && (
-          <div className="mt-4">
-            <h3 className="text-lg font-semibold mb-2">Comments</h3>
-            {item.comments.filter(comment => comment.object_id === item.id).map((comment) => (
-              <div key={comment.id} className="flex items-center mb-2">
-                <img src={comment.author.Avatar} alt="Avatar" className="h-6 w-6 mr-2 rounded-full" />
-                <p className="text-gray-400">{comment.author.Username}</p>
-                <p className="text-gray-400">{editingCommentId === comment.id ? 
-                  <input 
-                    type="text" 
-                    value={editedCommentText} 
-                    onChange={(e) => setEditedCommentText(e.target.value)} 
-                    className="border border-gray-300 rounded-md p-1 mr-2"
-                  /> 
-                  : comment.body}
-                </p>
-                <p className="text-gray-400">{comment.created_on}</p>
-                {editingCommentId === comment.id ? (
-                  <button className="flex items-center" onClick={() => handleSendEditedComment(item.id, comment.id)}>
-                    Send Edited Comment
-                  </button>
-                ) : (
-                  <button className="flex items-center" onClick={() => handleEditComment(item.id, comment.id)}>
-                    <FaEdit className="mr-1" />
-                    Edit
-                  </button>
-                )}
-              </div>
-            ))}
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold mb-2">Comments</h3>
+              {item.comments.map((comment) => (
+                <div key={comment.id} className="flex items-center mb-2">
+                  <img src={comment.author.Avatar} alt="Avatar" className="h-6 w-6 mr-2 rounded-full" />
+                  <p className="text-gray-400">{comment.author.Username}</p>
+                  <p className="text-gray-400">{comment.body}</p>
+                  <p className="text-gray-400">{comment.created_on}</p>
+                </div>
+              ))}
             {/* Load more comments button */}
             <div className="mt-2">
-              <button className="text-gray-400 hover:text-white" onClick={() => loadMoreComments(item.id, item.type)}>
+              <button className="text-gray-400 hover:text-white" onClick={() => loadMoreComments(item.id)}>
                 Load More Comments
               </button>
             </div>
@@ -425,12 +421,12 @@ const NewsFeed = () => {
             value={comments[item.id] || ''}
             onChange={(e) => handleCommentChange(item.id, e)}
           />
-          <button
-            className="px-4 py-2 bg-indigo-600 text-white rounded-md ml-2"
-            onClick={() => handleCommentSubmit(item.id, item.type)}
-          >
-            Send
-          </button>
+    <button
+  className="px-4 py-2 bg-indigo-600 text-white rounded-md ml-2"
+  onClick={(e) => handleCommentSubmit(item.id, item.type, e)}
+>
+  Send
+</button>
         </div>
       </div>
     ))}
