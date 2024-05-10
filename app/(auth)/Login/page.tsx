@@ -40,7 +40,11 @@ export default function Login() {
   };
 
   return (
+<<<<<<< HEAD
+    <div className='mt-48'>
+=======
     <div className=' pt-60'>
+>>>>>>> 24760804c706586199b952406f8d22b202f07e94
       <h1>User Login</h1>
       <form onSubmit={handleSubmit}>
         <div>
