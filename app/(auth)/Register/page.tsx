@@ -1,74 +1,88 @@
-"use client";
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import axios from 'axios';
+'use client'
+import React, { useState } from 'react';
 
-const Register = () => {
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [groups, setGroups] = useState([]);
+export default function Register() {
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
 
-  // Fetch groups from backend when component mounts
-  useEffect(() => {
-    const fetchGroups = async () => {
-      try {
-        const response = await axios.get('http://127.0.0.1:8000/groups/');
-        setGroups(response.data);
-      } catch (error) {
-        console.error('Error fetching groups:', error);
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const authToken = localStorage.getItem('token');
+
+      const response = await fetch('http://127.0.0.1:8000/signup/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify(formData),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        alert(data.message);
+        // Redirect to login page or handle success
+      } else {
+        throw new Error('Registration failed');
       }
-    };
-
-    fetchGroups();
-  }, []);
-
-  // Function to generate the path based on the selected group
-  const generatePath = (groupId) => {
-    switch (groupId) {
-      case 'Campus':
-        return '/Register/as-Campus';
-      case 'Collage':
-        return '/Register/as-Collage';
-      case 'Department':
-        return '/Register/as-Department';
-      case 'Lectures':
-        return '/Register/as-Lectures';
-      case 'University':
-        return '/Register/as-University';
-  
-      default:
-        return '/groups/'; // Default path
+    } catch (error) {
+      console.error('Error:', error);
+      // Handle error
     }
   };
 
   return (
-    <div className="bg-black fixed top-0 left-0 w-screen h-screen flex justify-center items-center">
-      <div className="w-full max-w-xl">
-        <div className="form-control w-full max-w-xs">
-          <select
-            value={selectedOption}
-            onChange={(e) => setSelectedOption(e.target.value)}
-            className="select select-bordered w-full max-w-xs"
-          >
-            <option disabled value="">
-              Pick one
-            </option>
-            {/* Render options based on fetched groups */}
-            {groups.map((group) => (
-              <option key={group.id} value={group.name}>
-                {group.name}
-              </option>
-            ))}
-          </select>
+    <div className=' pt-56'>
+      <h1>User Registration</h1>
+      <form onSubmit={handleSubmit}>
+ 
+        <div>
+          <label>Username:</label>
+          <input
+            type="text"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+          />
         </div>
-
-        {selectedOption && (
-          <Link href={generatePath(selectedOption)} passHref>
-            <button className="btn btn-primary mt-4">Go</button>
-          </Link>
-        )}
-      </div>
+        <div>
+          <label>Email:</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+          />
+        </div>
+        <div>
+          <label>Password:</label>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+          />
+        </div>
+        <button type="submit">Register</button>
+      </form>
     </div>
   );
-};
+}
 
-export default Register;
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+
+

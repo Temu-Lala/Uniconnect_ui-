@@ -38,8 +38,4 @@ const ExpandableText: React.FC<ExpandableTextProps> = ({ text, previewLength }) 
   );
 };
 
-<<<<<<< HEAD
 export default ExpandableText;
-=======
-export default ExpandableText;
->>>>>>> 82641953b76ea02f1d04091145c2b69311a92230
