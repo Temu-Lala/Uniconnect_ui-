@@ -1,10 +1,9 @@
 // pages/login.js
 'use client'
-// pages/login.js
-import { useState } from 'react';
-import { useRouter } from 'next/navigation'; // Use next/router instead of next/navigation
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function Login() {
+export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     username: '',
@@ -19,7 +18,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://127.0.0.1:8000/login/', {  // Use relative URL for the login endpoint
+      const response = await fetch('http://127.0.0.1:8000/login/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -29,13 +28,58 @@ export default function Login() {
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.token);
-        router.push('/'); // Redirect to the homepage after successful login
+        checkUserAssociation(); // Redirect after successful login
       } else {
         throw new Error('Login failed');
       }
     } catch (error) {
       console.error('Error:', error);
       // Handle error (e.g., display error message to the user)
+    }
+  };
+
+  const checkUserAssociation = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/login'); // Redirect to login if token is not available
+        return;
+      }
+
+      const response = await fetch('http://127.0.0.1:8000/api/user-profile/', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        switch (data.profile_type) {
+          case 'university':
+            router.push('/Profiles/Universty/');
+            break;
+          case 'campus':
+            router.push('/Profiles/Campus/');
+            break;
+          case 'college':
+            router.push('/Profiles/Collage/');
+            break;
+          case 'department':
+            router.push('/Profiles/Department/');
+            break;
+          case 'lecturer':
+            router.push('/Profiles/Lectures/');
+            break;
+          default:
+            router.push('/');
+            break;
+        }
+      } else {
+        throw new Error('Unable to fetch user profile association');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      // Handle error (e.g., redirect to login page or display error message)
     }
   };
 
