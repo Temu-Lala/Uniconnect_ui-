@@ -46,7 +46,8 @@ const Register = () => {
   };
 
   return (
-    <div className="bg-black fixed top-0 left-0 w-screen h-screen flex justify-center items-center">
+    <div className="bg-black h-screen mt-[67px] p-4">
+      <h2>Transform Your account to the next level.</h2>
       <div className="w-full max-w-xl">
         <div className="form-control w-full max-w-xs">
           <select

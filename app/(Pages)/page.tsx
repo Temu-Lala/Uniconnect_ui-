@@ -1,11 +1,17 @@
+"use client"
+
 import NewsFeed from "./News/page";
 import Footer from "../Components/Footer/Footer";
 import LecturesList from './LecturesList/page';
 import NavBar from "../Components/NavBar/NavBar";
 import NewPost from "./News/NewPost";
+import { useRouter } from "next/navigation";
 import React from 'react'; 
 
 export default function Home() {
+  const router = useRouter();
+
+  console.log("bek", router)
   return (
     <div className=" scrollbar-hide overflow-hidden">
       
