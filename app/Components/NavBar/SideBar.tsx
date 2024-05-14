@@ -43,7 +43,7 @@ const SideBar = (props: { isSidebarOpen: boolean; setIsSidebarOpen: Function;  c
     <Fragment>
       {/* Sidebar */}
       <div
-        className={`sidebar fixed inset-y-0 right-0 w-72 h-screen flex flex-col bg-gray-900 text-white p-4 transform transition-transform z-[9999] ${
+        className={`sidebar fixed inset-y-0 right-0 w-72 h-screen flex flex-col bg-black text-white p-4 transform transition-transform z-[9999] ${
           props.isSidebarOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -84,12 +84,6 @@ const SideBar = (props: { isSidebarOpen: boolean; setIsSidebarOpen: Function;  c
               <Link href="/notification" className="flex gap-4 items-center py-4">
                 <BsBell className="text-2xl cursor-pointer" />
                 <span className="ml-2">Notification</span>
-              </Link>
-            </li>
-            <li className="">
-              <Link href="/profiles/uniconnect" className="flex gap-4 items-center py-4">
-                <TbLetterU className="text-2xl cursor-pointer" />
-                <span className="ml-2">UniConnect</span>
               </Link>
             </li>
           </ul>
