@@ -1,10 +1,25 @@
-import Link from "next/link";
-import { MouseEventHandler } from "react";
+import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
+import Link from 'next/link';
+import { MouseEventHandler } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface ProfileDropdownProps {
   handler: MouseEventHandler<HTMLButtonElement>;
 }
-const ProfileDropdown:React.FC<ProfileDropdownProps> = ({ handler }) => {
+
+const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ handler }) => {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // Do something here when pathname changes...
+  }, [pathname]);
+
+  const handleNavigate = () => {
+    router.push(`${pathname}/Profiles/`);
+  };
+
   return (
     <div className="dropdown dropdown-end hidden sm:block">
       <div tabIndex={0} className="btn btn-ghost btn-circle avatar">
@@ -17,10 +32,9 @@ const ProfileDropdown:React.FC<ProfileDropdownProps> = ({ handler }) => {
         className="mt-3 p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
       >
         <li>
-          <Link href="/Profiles">Profile</Link>
+          <button onClick={handleNavigate}>Profiles</button>
         </li>
         <li>
-          {" "}
           <Link href="/Setting">Setting</Link>
         </li>
         <li>

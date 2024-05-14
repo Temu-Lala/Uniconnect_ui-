@@ -18,6 +18,7 @@ import { SiGoogleclassroom } from "react-icons/si";
 import { MdPlace } from "react-icons/md";
 import { MdStarBorderPurple500 } from "react-icons/md";
 import LongButton from '@/app/Components/Button/WideButton/WideButton'
+import NavBar from '@/app/Components/NavBar/NavBar';
 export default function Page() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -43,6 +44,7 @@ export default function Page() {
   return (
     
      <div>
+      <NavBar/>
       <div className="w-full h-96 bg-cover bg-no-repeat bg-center">
         <img className=" w-full h-full" src="https://images.pexels.com/photos/1181269/pexels-photo-1181269.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="" />
       </div>
