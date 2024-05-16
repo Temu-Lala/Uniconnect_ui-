@@ -45,7 +45,6 @@ const NavBar = () => {
   const axiosInstance = axios.create({
     withCredentials: true, // Include cookies in cross-origin requests
   });
-
   const handleLogout = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -53,16 +52,14 @@ const NavBar = () => {
       if (!token) {
         throw new Error("No token found"); // Handle case where token is not available
       }
-
-      const response = await fetch("http://127.0.0.1:8000/logout/", {
-        method: "POST",
+  
+      const response = await axios.post("http://127.0.0.1:8000/logout/", null, {
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`, // Include token in the Authorization header
         },
       });
-
-      if (response.ok) {
+  
+      if (response.status === 200) {
         localStorage.removeItem("token"); // Remove token from localStorage
         router.push("/login"); // Redirect to login page after successful logout
       } else {
@@ -73,6 +70,7 @@ const NavBar = () => {
       // Handle error (e.g., display error message to the user)
     }
   };
+  
 
   return (
     <header className="z-[99999]">
