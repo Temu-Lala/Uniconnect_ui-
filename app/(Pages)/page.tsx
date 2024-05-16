@@ -11,7 +11,6 @@ import React from 'react';
 export default function Home() {
   const router = useRouter();
 
-  console.log("bek", router)
   return (
     <div className=" scrollbar-hide overflow-hidden">
       

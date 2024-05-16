@@ -56,7 +56,6 @@ const NotificationsPage = () => {
 
   return (
     <div>
-      <h1>Notificatiosssssssssssssns</h1>
       <ul>
         {notifications.map(notification => (
           <li key={notification.id}>

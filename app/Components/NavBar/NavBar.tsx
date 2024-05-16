@@ -6,6 +6,7 @@ import { BsBell } from "react-icons/bs";
 import { IoChatbubbleEllipsesOutline, IoHomeOutline } from "react-icons/io5";
 import { CiLogin } from "react-icons/ci";
 import { PiNewspaper } from "react-icons/pi";
+import { useAuth } from "@/app/contexts/AuthContext";
 
 import Link from "next/link";
 import Logo from "./Logo";
@@ -16,14 +17,15 @@ import Search from "../Search/Search";
 import SideBar from "./SideBar";
 import ThemeToggler from "../ThemeToggler/ThemeToggler";
 
-
 const NavBar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const router = useRouter();
 
+  const { isAuthenticated } = useAuth()
+
   const handleLogin = () => {
-    router.push('/Login');
-  }
+    router.push("/Login");
+  };
 
   const toggleMenu = () => {
     // Close sidebar and uncheck the hidden checkbox
@@ -80,69 +82,75 @@ const NavBar = () => {
         </div>
 
         {/* Center navigation link icons - hidden on small screens */}
-        {/* <div clas   sName="hidden sm:flex gap-8 flex-grow flex-1 justify-center">
-          <SearchModal />
+        {isAuthenticated && (
+          <div className="hidden sm:flex gap-8 flex-grow flex-1 justify-center">
+            <SearchModal />
 
-          <div className="tooltip tooltip-bottom" data-tip="Home">
-            <Link href="/" className="btn btn-ghost btn-circle">
-              <IoHomeOutline className="text-2xl cursor-pointer" />
-            </Link>
-          </div>
-
-          <div className="tooltip tooltip-bottom" data-tip="News">
-            <Link href="/News" className="btn btn-ghost btn-circle">
-              <PiNewspaper className="text-2xl cursor-pointer" />
-            </Link>
-          </div>
-
-          <div className="tooltip tooltip-bottom" data-tip="Message">
-            <Link href="/message" className="btn btn-ghost btn-circle">
-              <IoChatbubbleEllipsesOutline className="text-2xl cursor-pointer" />
-            </Link>
-          </div>
-
-          <div className="dropdown dropdown-end">
-            <div
-              tabIndex={0}
-              role="button"
-              className="btn btn-ghost btn-circle"
-            >
-              <div
-                className="indicator tooltip tooltip-bottom"
-                data-tip="Notification"
-              >
-                <BsBell className="text-2xl" />
-                <span className="badge badge-sm indicator-item bg-blue-600 text-white">
-                  5
-                </span>
-              </div>
+            <div className="tooltip tooltip-bottom" data-tip="Home">
+              <Link href="/" className="btn btn-ghost btn-circle">
+                <IoHomeOutline className="text-2xl cursor-pointer" />
+              </Link>
             </div>
-            <Notifications />
+
+            <div className="tooltip tooltip-bottom" data-tip="News">
+              <Link href="/News" className="btn btn-ghost btn-circle">
+                <PiNewspaper className="text-2xl cursor-pointer" />
+              </Link>
+            </div>
+
+            <div className="tooltip tooltip-bottom" data-tip="Message">
+              <Link href="/message" className="btn btn-ghost btn-circle">
+                <IoChatbubbleEllipsesOutline className="text-2xl cursor-pointer" />
+              </Link>
+            </div>
+
+            <div className="dropdown dropdown-end">
+              <div
+                tabIndex={0}
+                role="button"
+                className="btn btn-ghost btn-circle"
+              >
+                <div
+                  className="indicator tooltip tooltip-bottom"
+                  data-tip="Notification"
+                >
+                  <BsBell className="text-2xl" />
+                  <span className="badge badge-sm indicator-item bg-blue-600 text-white">
+                    5
+                  </span>
+                </div>
+              </div>
+              <Notifications />
+            </div>
           </div>
-        </div> */}
+        )}
 
         {/* if user is not logged in */}
-        <div>
-          <button className="btn !min-h-8 h-10 bg-blue-600 text-white px-8" onClick={handleLogin}>
-            Login
-            <CiLogin className="text-lg" />
-          </button>
-          <div className="tooltip tooltip-bottom" data-tip="Home">
-            <Link href="/" className="btn btn-ghost btn-circle">
-              <IoHomeOutline className="text-xl cursor-pointer" />
-            </Link>
-          </div>
+        {!isAuthenticated && (
+          <div>
+            <button
+              className="btn !min-h-8 h-10 bg-blue-600 text-white px-8"
+              onClick={handleLogin}
+            >
+              Login
+              <CiLogin className="text-lg" />
+            </button>
+            <div className="tooltip tooltip-bottom" data-tip="Home">
+              <Link href="/" className="btn btn-ghost btn-circle">
+                <IoHomeOutline className="text-xl cursor-pointer" />
+              </Link>
+            </div>
 
-          <div className="tooltip tooltip-bottom" data-tip="News">
-            <Link href="/News" className="btn btn-ghost btn-circle">
-              <PiNewspaper className="text-2xl cursor-pointer" />
-            </Link>
+            <div className="tooltip tooltip-bottom" data-tip="News">
+              <Link href="/News" className="btn btn-ghost btn-circle">
+                <PiNewspaper className="text-2xl cursor-pointer" />
+              </Link>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Right Profile Dropdown */}
-
-        {/* <ProfileDropdown handler={handleLogout} /> */}
+        {isAuthenticated && <ProfileDropdown handler={handleLogout} />}
 
         {/* Menu Icon for Small Screens */}
         <button className="flex z-[9999] sm:hidden">

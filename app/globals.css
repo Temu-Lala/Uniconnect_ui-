@@ -81,3 +81,17 @@ html::-webkit-scrollbar-track{
   border-radius: 6px; /* roundness of the scroll thumb */
   border: 3px solid #1d232a; /* creates padding around scroll thumb */
 }
+
+
+.ant-input-group-wrapper{
+  height: 50px !important;
+  display: block;
+}
+
+.ant-input-wrapper{
+  height: 50px !important;
+}
+
+.url .ant-input{
+  height: 50px !important;
+}

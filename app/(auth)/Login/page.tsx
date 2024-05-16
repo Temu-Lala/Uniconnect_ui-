@@ -2,7 +2,7 @@
 
 // import React, { useState, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-// import { useAuth } from "@/app/contexts/AuthContext";
+import { useAuth } from "@/app/contexts/AuthContext";
 import LoginForm, { FormData } from "./LoginForm";
 import Image from "next/image";
 import Logo from "@/app/Components/NavBar/Logo";
@@ -169,6 +169,7 @@ import Logo from "@/app/Components/NavBar/Logo";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { setAuthenticated } = useAuth();
 
   const handleSubmit = async (formData: FormData) => {
     // Explicitly type formData with FormData interface
@@ -183,6 +184,7 @@ export default function LoginPage() {
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.token);
+        setAuthenticated(true);
         checkUserAssociation(); // Redirect after successful login
       } else {
         throw new Error("Login failed");
