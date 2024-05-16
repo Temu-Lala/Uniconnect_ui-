@@ -20,10 +20,10 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <body className={`${inter.className} flex flex-col min-h-[100vh]`}>
         <div className="fixed top-0 left-0 right-0 z-50">
-          <NavBar/>
+         <NavBar />
         </div>
         <main>{children}</main>
-        <Footer />
+      
       </body>
     </html>
   );
