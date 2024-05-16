@@ -2,8 +2,11 @@
 // components/NewUniversityProfileForm.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { Input, Select } from "antd";
 const { TextArea } = Input;
+import MapInput from "./MapInput";
+import Link from "next/link";
 
 const NewUniversityProfileForm = () => {
   const [formData, setFormData] = useState({
@@ -21,7 +24,7 @@ const NewUniversityProfileForm = () => {
     city: "",
     pobox: "",
     liyubota: "",
-    location: "",
+    location: { lat: 0, lng: 0 },
     group: "",
     university_profile_id: "",
   });
@@ -66,6 +69,13 @@ const NewUniversityProfileForm = () => {
     });
   };
 
+  const setLocation = (newLocation: { lat: number; lng: number }) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      location: newLocation,
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
@@ -98,7 +108,7 @@ const NewUniversityProfileForm = () => {
           city: "",
           pobox: "",
           liyubota: "",
-          location: "",
+          location: { lat: 0, lng: 0 },
           group: "",
           university_profile_id: "",
         });
@@ -110,8 +120,9 @@ const NewUniversityProfileForm = () => {
 
   return (
     <section className="pt-[67px] flex items-center justify-center p-12">
-      <div className="mx-auto w-full md:w-8/12 bg-white p-8 flex justify-center">
-        <form className="w-full md:w-8/12" onSubmit={handleSubmit}>
+      <h2>Create a University Profile</h2>
+      <div className="mx-auto w-full md:w-10/12 xl:w-8/12 bg-white p-8 flex justify-center">
+        <form className="w-full md:10/12 xl:w-8/12" onSubmit={handleSubmit}>
           <div className="mb-5">
             <label
               htmlFor="name"
@@ -169,13 +180,13 @@ const NewUniversityProfileForm = () => {
             >
               Website URL
             </label>
-                <Input
-                style={{ height: '100%' }}
-                  className="w-full !h-full text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
-                  addonBefore="http://"
-                  addonAfter=".com"
-                  placeholder="Please enter url"
-                />
+            <Input
+              style={{ height: "100%" }}
+              className="w-full !h-full text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+              addonBefore="http://"
+              addonAfter=".com"
+              placeholder="Please enter url"
+            />
           </div>
           <div className="mb-5">
             <label
@@ -377,6 +388,28 @@ const NewUniversityProfileForm = () => {
           </div>
 
           {/* location input from map goes here */}
+          <div className="mb-5 w-full h-[300px] outline outline-2 outline-gray-950">
+            {/* <MapInput location={formData.location} setLocation={setLocation} /> */}
+          </div>
+
+          <div className="mb-5 flex items-start">
+            <div className="flex items-center h-5">
+              <Input
+                id="remember"
+                aria-describedby="remember"
+                type="checkbox"
+                className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
+              />
+            </div>
+            <div className="ml-3 text-sm">
+              <label
+                htmlFor="remember"
+                className="text-gray-500 dark:text-gray-300"
+              >
+                By creating a university profile on Uni-connect you're agreeing to the <Link href="#" className="text-blue-600">terms and conditions</Link>.
+              </label>
+            </div>
+          </div>
 
           <div>
             <button className="btn w-full rounded-md bg-blue-600 py-3 px-8 text-center text-base font-semibold text-white outline-none">
@@ -390,4 +423,3 @@ const NewUniversityProfileForm = () => {
 };
 
 export default NewUniversityProfileForm;
-
