@@ -1,7 +1,7 @@
 import React from "react";
 import {User} from "@nextui-org/react";
 
-export default function App() {
+export default function Profileof() {
   return (
     <User   
       name="Jane Doe"

@@ -2,7 +2,7 @@
 import React from "react";
 import {Popover, PopoverTrigger, PopoverContent, Button, Input} from "@nextui-org/react";
 
-export default function App() {
+export default function Popover() {
   return (
     <Popover placement="bottom" showArrow offset={10}>
       <PopoverTrigger>

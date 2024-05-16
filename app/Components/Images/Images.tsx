@@ -1,7 +1,7 @@
 import React from "react";
 import {Image} from "@nextui-org/react";
 
-export default function App() {
+export default function Images() {
   return (
     <Image
       width={300}

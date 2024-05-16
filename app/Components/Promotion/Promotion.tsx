@@ -9,7 +9,7 @@ const contentStyle: React.CSSProperties = {
   background: '#364d79',
 };
 
-const App: React.FC = () => (
+const Promo: React.FC = () => (
   <Carousel autoplay>
     <div>
       <h3 style={contentStyle}>1</h3>
@@ -26,4 +26,4 @@ const App: React.FC = () => (
   </Carousel>
 );
 
-export default App;
+export default Promo;

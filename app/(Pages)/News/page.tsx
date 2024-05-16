@@ -1,8 +1,8 @@
 'use client';
 import React, { useState, useEffect, ChangeEvent } from 'react';
-import { FaThumbsUp, FaThumbsDown, FaShare, FaEdit } from 'react-icons/fa';
-import Avater from '../../Components/Avater/Avater';
-import ThemeController from '@/app/Components/ThemController/ThemController';
+import { FaThumbsUp, FaThumbsDown, FaShare, FaEdit, FaCopy } from 'react-icons/fa';
+import Avatar from '../../Components/Avater/Avater';
+import ThemeController from '../../Components/ThemController/ThemController';
 import Link from 'next/link';
 
 interface Comment {
@@ -22,6 +22,7 @@ interface NewsItem {
   created_at: string;
   date: string;
   imageUrls: string[];
+  fileUrl: string;
   likes: number;
   dislikes: number;
   shares: number;
@@ -38,6 +39,8 @@ const NewsFeed = () => {
   const [error, setError] = useState<string | null>(null);
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editedCommentText, setEditedCommentText] = useState<string>('');
+  const [shareLink, setShareLink] = useState<string>('');
+  const [showShareModal, setShowShareModal] = useState<boolean>(false);
 
   useEffect(() => {
     fetchNewsFeed();
@@ -70,344 +73,349 @@ const NewsFeed = () => {
     }
   };
 
-  const formatPostItem = (item: any, type: string): NewsItem => {
-    const ownerName = item.user ? item.user.username : 'Unknown';
-    return {
-      id: item.id,
-      owner: item.user,
-      ownerName: ownerName,
-      title: item.title,
-      link: item.link,
-      content: item.content,
-      created_at: item.created_at,
-      date: item.created_on,
-      imageUrls: [item.file],
-      likes: item.likes,
-      dislikes: item.dislikes,
-      shares: item.shares,
-      type: type,
-      showAllComments: false,
-      liked: false,
-      disliked: false,
-      comments: []
-    };
+  const formatPostItem = (item: any, type: string): NewsItem => ({
+    id: item.id,
+    ownerName: item.owner_name,
+    owner: item.owner,
+    title: item.title,
+    content: item.content,
+    link: item.link,
+    created_at: item.created_at,
+    date: new Date(item.created_at).toLocaleDateString(),
+    imageUrls: [item.file],
+    fileUrl: item.file,
+    likes: item.likes,
+    dislikes: item.dislikes,
+    shares: item.shares,
+    type,
+    showAllComments: false,
+    liked: false,
+    disliked: false,
+    comments: []
+  });
+
+  const toggleComments = async (postId: number, type: string) => {
+    const postIndex = newsItems.findIndex(item => item.id === postId && item.type === type);
+    if (postIndex === -1) return;
+
+    const updatedNewsItems = [...newsItems];
+    const post = updatedNewsItems[postIndex];
+
+    if (post.showAllComments) {
+      post.showAllComments = false;
+      setNewsItems(updatedNewsItems);
+    } else {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/comments/${type}/${postId}/`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch comments');
+        }
+        const data = await response.json();
+        post.comments = data.comments;
+        post.showAllComments = true;
+        setNewsItems(updatedNewsItems);
+      } catch (error) {
+        console.error('Error fetching comments:', error.message);
+        setError('Failed to fetch comments. Please try again later.');
+      }
+    }
   };
 
-  const handleCommentChange = (postId: number, e: ChangeEvent<HTMLTextAreaElement>) => {
+  const handleCommentChange = (e: ChangeEvent<HTMLTextAreaElement>, postId: number) => {
     setComments({ ...comments, [postId]: e.target.value });
   };
 
-  const handleCommentSubmit = async (postId: number, postType: string, e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    e.preventDefault(); // Prevent default form submission
+  const handleAddComment = async (postId: number, type: string) => {
+    if (!comments[postId]?.trim()) {
+      alert('Comment cannot be empty.');
+      return;
+    }
 
     try {
-      const newCommentTrimmed = comments[postId]?.trim();
-      if (newCommentTrimmed) {
-        const authToken = localStorage.getItem('token');
-        if (!authToken) {
-          throw new Error('User authentication token not found. Please log in again.');
-        }
+      const response = await fetch('http://127.0.0.1:8000/add-comment/', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          postId,
+          postType: type,
+          commentText: comments[postId]
+        })
+      });
 
-        const response = await fetch('http://127.0.0.1:8000/add-comment/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify({
-            postId,
-            postType,
-            commentText: newCommentTrimmed,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to add comment');
-        }
-
-        const updatedCommentsResponse = await fetch(`http://127.0.0.1:8000/get_post_comments/${item.type}/${item.id}/`);
-        if (!updatedCommentsResponse.ok) {
-          throw new Error(`Failed to fetch updated comments for post ${postId}`);
-        }
-        const updatedComments = await updatedCommentsResponse.json();
-
-        setNewsItems(prevItems =>
-          prevItems.map(item => {
-            if (item.id === postId) {
-              return { ...item, comments: updatedComments };
-            }
-            return item;
-          })
-        );
-
-        setComments({ ...comments, [postId]: '' });
+      if (response.status === 401) {
+        alert('You must be logged in to add a comment.');
+        window.location.href = '/login';
+        return;
       }
+
+      if (!response.ok) {
+        throw new Error('Failed to add comment');
+      }
+
+      setComments({ ...comments, [postId]: '' });
+      toggleComments(postId, type);
     } catch (error) {
       console.error('Error adding comment:', error.message);
       setError('Failed to add comment. Please try again later.');
     }
   };
-  const handleLike = async (postId: number) => {
-    const authToken = localStorage.getItem('token');
 
+  const handleEditComment = (commentId: number, text: string) => {
+    setEditingCommentId(commentId);
+    setEditedCommentText(text);
+  };
+
+  const handleSaveEditedComment = async (commentId: number) => {
     try {
+      const response = await fetch(`http://127.0.0.1:8000/comments/${commentId}/edit/`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ 
+          commentText: editedCommentText
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to edit comment');
+      }
+
+      setEditingCommentId(null);
+      setEditedCommentText('');
+      fetchNewsFeed();
+    } catch (error) {
+      console.error('Error saving edited comment:', error.message);
+      setError('Failed to save edited comment. Please try again later.');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+    setEditedCommentText('');
+  };
+
+  const handleLikePost = async (postId: number, type: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('You must be logged in to like a post.');
+        window.location.href = '/login';
+        return;
+      }
+
       const response = await fetch('http://127.0.0.1:8000/like-post/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ postId }),
+        body: JSON.stringify({
+          postId,
+          postType: type
+        })
       });
+
       if (!response.ok) {
         throw new Error('Failed to like post');
       }
-      const data = await response.json();
-      setNewsItems(prevItems =>
-        prevItems.map(item => (item.id === postId ? data : item))
-      );
+
+      fetchNewsFeed();
     } catch (error) {
       console.error('Error liking post:', error.message);
       setError('Failed to like post. Please try again later.');
     }
   };
 
-  const handleDislike = async (postId: number) => {
+  const handleDislikePost = async (postId: number, type: string) => {
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('You must be logged in to dislike a post.');
+        window.location.href = '/login';
+        return;
+      }
+
       const response = await fetch('http://127.0.0.1:8000/dislike-post/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ postId }),
+        body: JSON.stringify({
+          postId,
+          postType: type
+        })
       });
+
       if (!response.ok) {
         throw new Error('Failed to dislike post');
       }
-      const data = await response.json();
-      setNewsItems(prevItems =>
-        prevItems.map(item => (item.id === postId ? data : item))
-      );
+
+      fetchNewsFeed();
     } catch (error) {
       console.error('Error disliking post:', error.message);
       setError('Failed to dislike post. Please try again later.');
     }
   };
 
-  const toggleCommentsVisibility = (postId: number) => {
-    setNewsItems(prevItems =>
-      prevItems.map(item =>
-        item.id === postId ? { ...item, showAllComments: !item.showAllComments } : item
-      )
-    );
-  };
+// NewsFeed.js (or relevant component)
 
-  const loadMoreComments = async (postId, lastCommentTimestamp) => {
-    try {
-      const post = newsItems.find(item => item.id === postId);
-      if (!post) {
-        throw new Error(`Post with ID ${postId} not found`);
+const handleSharePost = async (postId, postType) => {
+  try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+          alert('You must be logged in to share a post.');
+          window.location.href = '/login'; // Redirect to login page
+          return;
       }
 
-      const response = await fetch(`http://127.0.0.1:8000/comments/?postId=${postId}&lastCommentTimestamp=${lastCommentTimestamp}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch more comments for post ${postId}`);
-      }
-      const { comments, users } = await response.json();
-
-      const totalComments = post.totalComments + comments.length;
-
-      const commentsWithUserDetails = comments.map(comment => {
-        const user = users.find(user => user.id === comment.author);
-        return {
-          ...comment,
-          author: {
-            Username: user ? user.username : 'Unknown',
-            Avatar: user ? user.avatar : '',
+      const response = await fetch(`http://127.0.0.1:8000/share-post/${postType}/${postId}`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
           }
-        };
-      });
-
-      setNewsItems(prevItems =>
-        prevItems.map(item => (item.id === postId ? { ...item, comments: [...item.comments, ...commentsWithUserDetails], totalComments: totalComments } : item))
-      );
-    } catch (error) {
-      console.error('Error loading more comments:', error.message);
-      setError('Failed to load more comments. Please try again later.');
-    }
-  };
-
-  const handleEditComment = async (postId: number, commentId: number) => {
-    try {
-      const authToken = localStorage.getItem('token');
-      if (!authToken) {
-        throw new Error('User authentication token not found. Please log in again.');
-      }
-
-      const response = await fetch(`http://127.0.0.1:8000/comments/${commentId}/edit/`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        }
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch comment for editing');
+          throw new Error('Failed to share post');
       }
 
       const data = await response.json();
-      const editedCommentText = data.body;
+      setShareLink(data.shareLink); // Update state with share link
+      setShowShareModal(true); // Show share modal
+      fetchNewsFeed(); // Refresh news feed after sharing
+  } catch (error) {
+      console.error('Error sharing post:', error.message);
+      setError('Failed to share post. Please try again later.');
+  }
+};
 
-      setEditedCommentText(editedCommentText);
-      setEditingCommentId(commentId);
-    } catch (error) {
-      console.error('Error editing comment:', error.message);
-      setError('Failed to edit comment. Please try again later.');
-    }
+  
+  
+// NewsFeed.js (or relevant component)
+
+const copyLink = async () => {
+  try {
+      navigator.clipboard.writeText(shareLink);
+      alert('Link copied to clipboard');
+  } catch (error) {
+      console.error('Error copying link:', error.message);
+      setError('Failed to copy link. Please try again later.');
+  }
+};
+
+  const handleCloseShareModal = () => {
+    setShowShareModal(false);
   };
-
-  const handleSendEditedComment = async (postId: number, commentId: number) => {
-    try {
-      const authToken = localStorage.getItem('token');
-      if (!authToken) {
-        throw new Error('User authentication token not found. Please log in again.');
-      }
-
-      const response = await fetch(`http://127.0.0.1:8000/comments/${commentId}/edit/`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          commentText: editedCommentText
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send edited comment');
-      }
-
-      setNewsItems(prevItems =>
-        prevItems.map(item => {
-          if (item.id === postId) {
-            const updatedComments = item.comments.map(comment => {
-              if (comment.id === commentId) {
-                return { ...comment, body: editedCommentText };
-              }
-              return comment;
-            });
-            return { ...item, comments: updatedComments };
-          }
-          return item;
-        })
-      );
-
-      setEditingCommentId(null);
-      setEditedCommentText('');
-    } catch (error) {
-      console.error('Error sending edited comment:', error.message);
-      setError('Failed to send edited comment. Please try again later.');
-    }
-  };
-
+  useEffect(() => {
+    return () => {
+      setShowShareModal(false);
+    };
+  }, []);
   return (
-    <div className="scrollbar-hide h-full overflow-y-auto p-8">
-    {newsItems.map((item) => (
-      <div key={item.id} className="bg-gray-800 p-4 rounded-md mb-4">
-        <div className="flex mb-2 gap-6 w-full">
-          <div className="flex gap-6 w-4/5">
-            <Avater src={item.owner ? item.owner.avatar : '/images/default-avatar.png'} alt="User Avatar" />
-            <div className="flex flex-col w-full">
-              <p className="text-white">{item.ownerName}</p>
-              <p className="text-gray-500">{item.date}</p>
+    <div className="news-feed-container">
+      {error && <div className="error-message">{error}</div>}
+      {newsItems.map(item => (
+        <div className="news-item" key={item.id}>
+          <div className="news-item-header">
+            <Avatar username={item.ownerName} avatarUrl={item.ownerAvatar} />
+            <div className="owner-name">{item.ownerName}</div>
+            <div className="post-date">{item.date}</div>
+          </div>
+          <div className="news-item-content">
+            <h2>{item.title}</h2>
+            <p>{item.content}</p>
+            {item.imageUrls.length > 0 && (
+              <div className="image-container">
+                {item.imageUrls.map((url, index) => (
+                  <img key={index} src={url} alt={`Image ${index + 1}`} />
+                ))}
+              </div>
+            )}
+            {item.fileUrl && (
+              <div className="file-container">
+                <a href={item.fileUrl} target="_blank" rel="noopener noreferrer">
+                  Download File
+                </a>
+              </div>
+            )}
+            <div className="news-item-actions">
+              <button onClick={() => handleLikePost(item.id, item.type)}>
+                <FaThumbsUp /> {item.likes}
+              </button>
+              {/* <button onClick={() => handleDislikePost(item.id, item.type)}>
+                <FaThumbsDown /> {item.dislikes}
+              </button> */}
+              <button onClick={() => handleSharePost(item.id, item.type)}>
+                <FaShare /> {item.shares}
+              </button>
+              <button onClick={() => setShowShareModal(true)}>
+                <FaCopy />
+              </button>
             </div>
           </div>
-          <ThemeController />
-        </div>
-        <h2 className="text-xl font-semibold text-white mb-2">{item.title}</h2>
-        {item.imageUrls.length > 0 && (
-          <img src={item.imageUrls[0]} alt="Post" className="rounded-md mb-2" />
-        )}
-        <p className="text-gray-300 mb-4">{item.content}</p>
-        <div className="flex items-center gap-4 text-gray-400">
-          <button className="flex items-center gap-2" onClick={() => handleLike(item.id)}>
-            <FaThumbsUp className="text-xl" />
-            <span>{item.likes}</span>
-          </button>
-          <button className="flex items-center gap-2" onClick={() => handleDislike(item.id)}>
-            <FaThumbsDown className="text-xl" />
-            <span>{item.dislikes}</span>
-          </button>
-          <button className="flex items-center gap-2">
-            <FaShare className="text-xl" />
-            <span>{item.shares}</span>
-          </button>
-          <button className="flex items-center gap-2" onClick={() => toggleCommentsVisibility(item.id)}>
-            <FaEdit className="text-xl" />
-            <span>{item.comments.length}</span>
-          </button>
-        </div>
-        {item.showAllComments && (
-          <div className="mt-4">
+          <div className="comments-section">
+            <h3>Comments</h3>
             {item.comments.map(comment => (
-              <div key={comment.id} className="flex items-center gap-4 mb-4">
-                <Avater src={comment.author.Avatar} alt="User Avatar" />
-                <div className="flex flex-col">
-                  <p className="text-white font-semibold">{comment.author.Username}</p>
-                  <p className="text-gray-400">{comment.body}</p>
-                  {editingCommentId === comment.id ? (
-                    <div className="flex gap-4 mt-2">
-                      <input
-                        type="text"
-                        className="px-2 py-1 rounded-md border border-gray-500"
-                        value={editedCommentText}
-                        onChange={(e) => setEditedCommentText(e.target.value)}
-                      />
-                      <button
-                        className="px-4 py-1 rounded-md bg-green-500 text-white"
-                        onClick={() => handleSendEditedComment(item.id, comment.id)}
-                      >
-                        Save
-                      </button>
+              <div key={comment.id} className="comment">
+                <Avatar username={comment.author.Username} avatarUrl={comment.author.Avatar} />
+                {editingCommentId === comment.id ? (
+                  <>
+                    <textarea
+                      value={editedCommentText}
+                      onChange={e => setEditedCommentText(e.target.value)}
+                      rows={3}
+                      cols={50}
+                    />
+                    <button onClick={() => handleSaveEditedComment(comment.id)}>Save</button>
+                    <button onClick={handleCancelEdit}>Cancel</button>
+                  </>
+                ) : (
+                  <>
+                    <p>{comment.body}</p>
+                    <div className="comment-actions">
+                      <button onClick={() => handleEditComment(comment.id, comment.body)}>Edit</button>
                     </div>
-                  ) : (
-                    <button
-                      className="text-blue-500 mt-2"
-                      onClick={() => handleEditComment(item.id, comment.id)}
-                    >
-                      Edit
-                    </button>
-                  )}
-                </div>
+                  </>
+                )}
               </div>
             ))}
-            <button
-              className="text-blue-500 mt-2"
-              onClick={() => loadMoreComments(item.id, item.comments[item.comments.length - 1].created_on)}
-            >
-              Load more comments
-            </button>
-            <textarea
-              className="w-full px-2 py-1 rounded-md border border-gray-500 mt-4"
-              placeholder="Write a comment..."
-              value={comments[item.id] || ''}
-              onChange={(e) => handleCommentChange(item.id, e)}
-            />
-            <button
-              className="px-4 py-1 rounded-md bg-blue-500 text-white mt-2"
-              onClick={(e) => handleCommentSubmit(item.id, item.type, e)}
-            >
-              Comment
-            </button>
+            <div className="add-comment">
+              <textarea
+                value={comments[item.id] || ''}
+                onChange={e => handleCommentChange(e, item.id)}
+                placeholder="Add a comment..."
+                rows={3}
+                cols={50}
+              />
+              <button onClick={() => handleAddComment(item.id, item.type)}>Add Comment</button>
+            </div>
+            <div className="toggle-comments">
+              <button onClick={() => toggleComments(item.id, item.type)}>
+                {item.showAllComments ? 'Hide Comments' : 'Show Comments'}
+              </button>
+            </div>
           </div>
-        )}
-      </div>
-    ))}
-    {error && <p className="text-red-500">{error}</p>}
-  </div>
-);
+        </div>
+      ))}
+      {showShareModal && (
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={handleCloseShareModal}>&times;</span>
+            <h2>Share Link</h2>
+            <input type="text" value={shareLink} readOnly />
+            <button onClick={copyLink}>Copy Link</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default NewsFeed;
