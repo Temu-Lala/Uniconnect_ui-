@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
-const CollegeProfileDetailPage = ({ params }: { params: { id: string } }) => {
+const CollegeProfileDetailPage = ({ params }) => {
   const router = useRouter();
   const { id } = params;
 
@@ -14,12 +14,14 @@ const CollegeProfileDetailPage = ({ params }: { params: { id: string } }) => {
   const [comment, setComment] = useState('');
   const [ratingsAndComments, setRatingsAndComments] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
 
   useEffect(() => {
     if (id) {
       fetchProfile(id);
       fetchRatingsAndComments(id);
-      checkFollowingStatus(id); // Check if the user is following this profile
+      checkFollowingStatus(id);
+      fetchFollowersCount(id);
     }
   }, [id]);
 
@@ -60,6 +62,15 @@ const CollegeProfileDetailPage = ({ params }: { params: { id: string } }) => {
       setIsFollowing(response.data.is_following);
     } catch (error) {
       console.error('Error checking following status:', error.message);
+    }
+  };
+
+  const fetchFollowersCount = async (id) => {
+    try {
+      const response = await axios.get(`http://127.0.0.1:8000/collage_followers_count/${id}/`);
+      setFollowersCount(response.data.followers_count);
+    } catch (error) {
+      console.error('Error fetching followers count:', error.message);
     }
   };
 
@@ -109,7 +120,8 @@ const CollegeProfileDetailPage = ({ params }: { params: { id: string } }) => {
           }
         }
       );
-      setIsFollowing(!isFollowing);
+      setIsFollowing(action === 'follow');
+      fetchFollowersCount(id);
     } catch (error) {
       console.error('Error following/unfollowing profile:', error.message);
     }
@@ -119,17 +131,18 @@ const CollegeProfileDetailPage = ({ params }: { params: { id: string } }) => {
   if (error) return <p>Error: {error}</p>;
 
   return (
-    <div>
-      <h1>College Profile Detail</h1>
+    <div className='pt-8 px-4'>
+      <h1 className='text-2xl font-bold mb-4'>College Profile Detail</h1>
       {profile && (
-        <div>
-          <p>Name: {profile.name}</p>
-          <p>Description: {profile.description}</p>
-          {/* Add other profile details here */}
+        <div className='mb-4'>
+          <p className='font-bold'>Name:</p>
+          <p>{profile.name}</p>
+          <p className='font-bold mt-2'>Description:</p>
+          <p>{profile.description}</p>
         </div>
       )}
-      <div>
-        <h2>Rate this college:</h2>
+      <div className='mb-4'>
+        <h2 className='text-lg font-bold mb-2'>Rate this college:</h2>
         <input
           type="range"
           min="0"
@@ -137,24 +150,38 @@ const CollegeProfileDetailPage = ({ params }: { params: { id: string } }) => {
           step="1"
           value={rating}
           onChange={handleRatingChange}
+          className='w-full'
         />
-        <p>Selected Rating: {rating}</p>
-        <textarea value={comment} onChange={handleCommentChange}></textarea>
-        <button onClick={handleSubmit}>Submit Rating and Comment</button>
+        <p className='text-sm'>Selected Rating: {rating}</p>
+        <textarea
+          value={comment}
+          onChange={handleCommentChange}
+          className='w-full h-24 px-3 py-2 border border-gray-300 rounded mt-2'
+          placeholder='Write your comment here...'
+        ></textarea>
+        <button onClick={handleSubmit} className='mt-2 px-4 py-2 bg-blue-500 text-white rounded'>
+          Submit Rating and Comment
+        </button>
       </div>
-      <div>
-        <h2>Ratings and Comments</h2>
+      <div className='mb-4'>
+        <h2 className='text-lg font-bold mb-2'>Ratings and Comments</h2>
         <ul>
           {ratingsAndComments.map((item, index) => (
-            <li key={index}>
-              <p>Rating: {item.value}</p>
+            <li key={index} className='mb-2'>
+              <p className='font-bold'>Rating: {item.value}</p>
               <p>Comment: {item.comment}</p>
             </li>
           ))}
         </ul>
       </div>
-      <div>
-        <button onClick={handleFollow}>{isFollowing ? 'Unfollow' : 'Follow'}</button>
+      <div className='mb-4'>
+       
+        <p>{followersCount}Followers</p>
+      </div>
+      <div className='mb-4'>
+        <button onClick={handleFollow} className='px-4 py-2 bg-blue-500 text-white rounded'>
+          {isFollowing ? 'Unfollow' : 'Follow'}
+        </button>
       </div>
     </div>
   );

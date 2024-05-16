@@ -28,8 +28,8 @@ const ProfileListPage = () => {
   if (error) return <p>Error: {error}</p>;
 
   return (
-    <div>
-      <h1>University Profiles List</h1>
+    <div className=' pt-44'>
+      <h1>Lecture Profiles List</h1>
       {profiles.map((profile) => (
         <div key={profile.id}>
           <Link href={`../../lecturer/profile/${profile.id}/`}>
