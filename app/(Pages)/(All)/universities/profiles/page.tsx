@@ -32,7 +32,7 @@ const ProfileListPage = () => {
   if (error) return <p>Error: {error}</p>;
 
   return (
-    <div>
+    <div className=' pt-44'>
       <h1>University Profiles List</h1>
       {profiles.map((profile) => (
         <div key={profile.id}>

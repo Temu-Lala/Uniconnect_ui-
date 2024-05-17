@@ -1,8 +1,6 @@
 // universities/profiles/detail.tsx
 
 "use client"
-// universities/profiles/detail.tsx
-
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -17,11 +15,15 @@ const DepartmentProfileDetailPage = ({ params }: { params: { id: string } }) => 
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [ratingsAndComments, setRatingsAndComments] = useState([]);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
 
   useEffect(() => {
     if (id) {
       fetchProfile(id);
       fetchRatingsAndComments(id);
+      checkFollowStatus(id);
+      fetchFollowersCount(id);
     }
   }, [id]);
 
@@ -51,6 +53,60 @@ const DepartmentProfileDetailPage = ({ params }: { params: { id: string } }) => 
       setRatingsAndComments(response.data);
     } catch (error) {
       console.error('Error fetching ratings and comments:', error.message);
+    }
+  };
+
+  const fetchFollowersCount = async (id) => {
+    try {
+      const response = await axios.get(`http://127.0.0.1:8000/department_followers_count/${id}/`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setFollowersCount(response.data.followers_count);
+    } catch (error) {
+      console.error('Error fetching followers count:', error.message);
+    }
+  };
+
+  const checkFollowStatus = async (id) => {
+    try {
+      const response = await axios.get(`http://127.0.0.1:8000/check-follow-status/department/${id}/`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setIsFollowing(response.data.is_following);
+    } catch (error) {
+      console.error('Error checking follow status:', error.message);
+    }
+  };
+
+  const handleFollow = async () => {
+    try {
+      const response = await axios.post(`http://127.0.0.1:8000/follow-department-profile/${id}/`, null, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setIsFollowing(true);
+      setFollowersCount(followersCount + 1);
+    } catch (error) {
+      console.error('Error following department:', error.message);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    try {
+      const response = await axios.post(`http://127.0.0.1:8000/unfollow-department-profile/${id}/`, null, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setIsFollowing(false);
+      setFollowersCount(followersCount - 1);
+    } catch (error) {
+      console.error('Error unfollowing department:', error.message);
     }
   };
 
@@ -91,7 +147,7 @@ const DepartmentProfileDetailPage = ({ params }: { params: { id: string } }) => 
   if (error) return <p>Error: {error}</p>;
 
   return (
-    <div>
+    <div className=' pt-52'>
       <h1>Department Profile Detail</h1>
       {profile && (
         <div>
@@ -100,6 +156,14 @@ const DepartmentProfileDetailPage = ({ params }: { params: { id: string } }) => 
           {/* Add other profile details here */}
         </div>
       )}
+      <div>
+        <h2>Followers Count: {followersCount}</h2>
+        {!isFollowing ? (
+          <button onClick={handleFollow}>Follow</button>
+        ) : (
+          <button onClick={handleUnfollow}>Unfollow</button>
+        )}
+      </div>
       <div>
         <h2>Rate this department:</h2>
         <input
