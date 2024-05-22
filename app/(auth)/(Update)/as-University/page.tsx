@@ -1,30 +1,84 @@
 "use client";
 // components/NewUniversityProfileForm.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ChangeEvent } from "react";
 import axios from "axios";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { Input, Select } from "antd";
 const { TextArea } = Input;
+import MapInput from "./MapInput";
+import Link from "next/link";
+
+import { Upload } from "antd";
+import ImgCrop from "antd-img-crop";
+import type {
+  UploadFile,
+  UploadProps,
+  RcFile,
+} from "antd/lib/upload/interface";
+
+import {
+  UniversityFormData,
+  initialUniversityFormData,
+} from "@/app/types/types";
+const { Option } = Select;
+
+type FileType = RcFile;
 
 const NewUniversityProfileForm = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    bio: "",
-    link: "",
-    category: "",
-    establishment_date: "",
-    number_of_lectures: 0,
-    number_of_departments: 0,
-    number_of_campuses: 0,
-    number_of_colleges: 0,
-    about: "",
-    region: "",
-    city: "",
-    pobox: "",
-    liyubota: "",
-    location: "",
-    group: "",
-    university_profile_id: "",
-  });
+  const [formData, setFormData] = useState<UniversityFormData>(
+    initialUniversityFormData
+  );
+
+  const selectBefore = (
+    <Select defaultValue="http://">
+      <Option value="http://">http://</Option>
+      <Option value="https://">https://</Option>
+    </Select>
+  );
+  const selectAfter = (
+    <Select defaultValue=".com">
+      <Option value=".com">.com</Option>
+      <Option value=".jp">.jp</Option>
+      <Option value=".cn">.cn</Option>
+      <Option value=".org">.org</Option>
+    </Select>
+  );
+
+
+  const onChangeAvatar: UploadProps["onChange"] = ({ fileList }) => {
+    if (fileList.length > 0) {
+      const file: FileType = fileList[0].originFileObj as FileType;
+      setFormData({
+        ...formData,
+        avatar: file,
+      });
+    }
+  };
+
+  const onChangeBackground: UploadProps["onChange"] = ({ fileList }) => {
+    if (fileList.length > 0) {
+      const file: FileType = fileList[0].originFileObj as FileType;
+      setFormData({
+        ...formData,
+        background: file,
+      });
+    }
+  };
+
+  const onPreview = async (file: UploadFile) => {
+    let src = file.url as string;
+    if (!src) {
+      src = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file.originFileObj as FileType);
+        reader.onload = () => resolve(reader.result as string);
+      });
+    }
+    const image = new Image();
+    image.src = src;
+    const imgWindow = window.open(src);
+    imgWindow?.document.write(image.outerHTML);
+  };
 
   useEffect(() => {
     // Fetch user ID from the server using the token
@@ -66,6 +120,13 @@ const NewUniversityProfileForm = () => {
     });
   };
 
+  const setLocation = (newLocation: { lat: number; lng: number }) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      location: newLocation,
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
@@ -86,6 +147,8 @@ const NewUniversityProfileForm = () => {
         setFormData({
           name: "",
           bio: "",
+          avatar: null,
+          background: null,
           link: "",
           category: "",
           establishment_date: "",
@@ -98,9 +161,7 @@ const NewUniversityProfileForm = () => {
           city: "",
           pobox: "",
           liyubota: "",
-          location: "",
-          group: "",
-          university_profile_id: "",
+          location: { lat: 0, lng: 0 },
         });
       }
     } catch (error) {
@@ -109,13 +170,19 @@ const NewUniversityProfileForm = () => {
   };
 
   return (
-    <section className="pt-[67px] flex items-center justify-center p-12">
-      <div className="mx-auto w-full md:w-8/12 bg-white p-8 flex justify-center">
-        <form className="w-full md:w-8/12" onSubmit={handleSubmit}>
+    <section className="pt-[67px] bg-white flex flex-col items-center justify-center p-12">
+      <div className="mx-auto w-full md:w-10/12 xl:w-8/12 bg-white p-8 flex justify-center border shadow-lg">
+        <form className="w-full md:10/12 xl:w-8/12" onSubmit={handleSubmit}>
+          <div className="my-5">
+            <h2 className="text-lg font-bold text-black">
+              Create a University Profile
+            </h2>
+          </div>
+
           <div className="mb-5">
             <label
               htmlFor="name"
-              className="mb-3 block text-base font-medium text-[#07074D]"
+              className="mb-3 block text-base font-medium text-[#06060f]"
             >
               Name of university
             </label>
@@ -124,7 +191,7 @@ const NewUniversityProfileForm = () => {
               name="name"
               id="name"
               placeholder="University name"
-              className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+              className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
               value={formData.name}
               onChange={handleChange}
             />
@@ -132,7 +199,7 @@ const NewUniversityProfileForm = () => {
           <div className="mb-5">
             <label
               htmlFor="name"
-              className="mb-3 block text-base font-medium text-[#07074D]"
+              className="mb-3 block text-base font-medium text-[#06060f]"
             >
               Email
             </label>
@@ -141,14 +208,14 @@ const NewUniversityProfileForm = () => {
               name="email"
               id="email"
               placeholder="Email"
-              className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+              className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
               value={"abebe@gmail.com"}
             />
           </div>
           <div className="mb-5">
             <label
               htmlFor="phone"
-              className="mb-3 block text-base font-medium text-[#07074D]"
+              className="mb-3 block text-base font-medium text-[#06060f]"
             >
               Bio
             </label>
@@ -160,27 +227,89 @@ const NewUniversityProfileForm = () => {
               maxLength={100}
               placeholder="About the university"
               style={{ height: 120, resize: "none" }}
+              className="border border-[#bfbfbf]"
             />
+          </div>
+          <div className="mb-5 flex ">
+            <div className="w-full sm:w-1/2">
+              <label
+                htmlFor="pp"
+                className="mb-3 block text-base font-medium text-[#06060f]"
+              >
+                Profile picture
+              </label>
+              <ImgCrop rotationSlider>
+                <Upload
+                  action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
+                  listType="picture-card"
+                  fileList={
+                    formData.avatar
+                      ? [
+                          {
+                            uid: "1",
+                            url: URL.createObjectURL(formData.avatar),
+                          },
+                        ]
+                      : []
+                  }
+                  onChange={onChangeAvatar}
+                  onPreview={onPreview}
+                  maxCount={1}
+                >
+                  {formData.avatar ? null : "+ Upload Avatar"}
+                </Upload>
+              </ImgCrop>
+            </div>
+
+            <div className="w-full sm:w-1/2">
+              <label
+                htmlFor="pp"
+                className="mb-3 block text-base font-medium text-[#06060f]"
+              >
+                Cover picture
+              </label>
+              <ImgCrop aspect={16 / 9} rotationSlider>
+                <Upload
+                  action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
+                  listType="picture-card"
+                  fileList={
+                    formData.background
+                      ? [
+                          {
+                            uid: "1",
+                            url: URL.createObjectURL(formData.background),
+                          },
+                        ]
+                      : []
+                  }
+                  onChange={onChangeBackground}
+                  onPreview={onPreview}
+                  maxCount={1}
+                >
+                  {formData.background ? null : "+ Upload Background"}
+                </Upload>
+              </ImgCrop>
+            </div>
           </div>
           <div className="mb-5 url">
             <label
               htmlFor="name"
-              className="mb-3 block text-base font-medium text-[#07074D]"
+              className="mb-3 block text-base font-medium text-[#06060f]"
             >
               Website URL
             </label>
-                <Input
-                style={{ height: '100%' }}
-                  className="w-full !h-full text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
-                  addonBefore="http://"
-                  addonAfter=".com"
-                  placeholder="Please enter url"
-                />
+            <Input
+              style={{ height: "100%" }}
+              className="w-full !h-full text-[#6B7280] rounded-md border border-[#bfbfbf] outline-none focus:border-blue-600 focus:shadow-md"
+              addonBefore={selectBefore} 
+              addonAfter={selectAfter}
+              placeholder="Please enter url"
+            />
           </div>
           <div className="mb-5">
             <label
               htmlFor="name"
-              className="mb-3 block text-base font-medium text-[#07074D]"
+              className="mb-3 block text-base font-medium text-[#06060f]"
             >
               Establishment Date
             </label>
@@ -189,7 +318,7 @@ const NewUniversityProfileForm = () => {
               name="establishment_date"
               id="establishment_date"
               placeholder="Establishment date"
-              className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+              className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
               value={formData.establishment_date}
               onChange={handleChange}
             />
@@ -197,14 +326,14 @@ const NewUniversityProfileForm = () => {
           <div className="mb-5">
             <label
               htmlFor="countries"
-              className="mb-3 block text-base font-medium text-[#07074D]"
+              className="mb-3 block text-base font-medium text-[#06060f]"
             >
               Category
             </label>
             <Select
               name="category"
               placeholder="Category"
-              className="w-full h-12"
+              className="w-full h-12 rounded-md border border-[#bfbfbf]"
               value={formData.category}
               // onChange={handleChange}
               options={[
@@ -217,7 +346,7 @@ const NewUniversityProfileForm = () => {
             <div className="mb-5">
               <label
                 htmlFor="name"
-                className="mb-3 block text-base font-medium text-[#07074D]"
+                className="mb-3 block text-base font-medium text-[#06060f]"
               >
                 Number of campus
               </label>
@@ -226,7 +355,7 @@ const NewUniversityProfileForm = () => {
                 name="number_of_campuses"
                 id="number_of_campuses"
                 placeholder="Number of campus"
-                className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+                className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
                 value={formData.number_of_campuses}
                 onChange={handleChange}
               />
@@ -235,7 +364,7 @@ const NewUniversityProfileForm = () => {
             <div className="mb-5">
               <label
                 htmlFor="name"
-                className="mb-3 block text-base font-medium text-[#07074D]"
+                className="mb-3 block text-base font-medium text-[#06060f]"
               >
                 Number of colleges
               </label>
@@ -244,7 +373,7 @@ const NewUniversityProfileForm = () => {
                 name="number_of_colleges"
                 id="number_of_colleges"
                 placeholder="Number of college"
-                className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+                className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
                 value={formData.number_of_colleges}
                 onChange={handleChange}
               />
@@ -253,7 +382,7 @@ const NewUniversityProfileForm = () => {
             <div className="mb-5">
               <label
                 htmlFor="name"
-                className="mb-3 block text-base font-medium text-[#07074D]"
+                className="mb-3 block text-base font-medium text-[#06060f]"
               >
                 Number of departments
               </label>
@@ -262,7 +391,7 @@ const NewUniversityProfileForm = () => {
                 name="number_of_departments"
                 id="number_of_departments"
                 placeholder="Number of departments"
-                className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+                className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
                 value={formData.number_of_departments}
                 onChange={handleChange}
               />
@@ -271,7 +400,7 @@ const NewUniversityProfileForm = () => {
             <div className="mb-5">
               <label
                 htmlFor="name"
-                className="mb-3 block text-base font-medium text-[#07074D]"
+                className="mb-3 block text-base font-medium text-[#06060f]"
               >
                 Number of lectures
               </label>
@@ -280,7 +409,7 @@ const NewUniversityProfileForm = () => {
                 name="number_of_lectures"
                 id="number_of_lectures"
                 placeholder="Number of lectures"
-                className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+                className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
                 value={formData.number_of_lectures}
                 onChange={handleChange}
               />
@@ -290,7 +419,7 @@ const NewUniversityProfileForm = () => {
           <div className="mb-5">
             <label
               htmlFor="phone"
-              className="mb-3 block text-base font-medium text-[#07074D]"
+              className="mb-3 block text-base font-medium text-[#06060f]"
             >
               More about
             </label>
@@ -301,12 +430,13 @@ const NewUniversityProfileForm = () => {
               onChange={handleChange}
               maxLength={500}
               placeholder="More details about the university"
+              className="rounded-md border border-[#bfbfbf]"
               style={{ height: 220, resize: "none" }}
             />
           </div>
 
           <div className="mb-5 pt-3">
-            <label className="mb-5 block text-base font-semibold text-[#07074D] sm:text-xl">
+            <label className="mb-5 block text-base font-semibold text-[#06060f] sm:text-xl">
               Address Details
             </label>
             <div className="-mx-3 flex flex-wrap">
@@ -316,7 +446,7 @@ const NewUniversityProfileForm = () => {
                     name="region"
                     value={formData.region}
                     placeholder="Region"
-                    className="w-full h-12"
+                    className="w-full h-12 rounded-md border border-[#bfbfbf]"
                     // onChange={handleChange}
                     options={[
                       { value: "Addis Abeba", label: "Addis Abeba" },
@@ -345,7 +475,7 @@ const NewUniversityProfileForm = () => {
                     id="city"
                     placeholder="City"
                     value={formData.city}
-                    className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+                    className="w-full rounded-md border border-[#bfbfbf] bg-transparent py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
                   />
                 </div>
               </div>
@@ -358,7 +488,7 @@ const NewUniversityProfileForm = () => {
                     id="pobox"
                     placeholder="Po Box"
                     value={formData.pobox}
-                    className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+                    className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
                   />
                 </div>
               </div>
@@ -369,7 +499,7 @@ const NewUniversityProfileForm = () => {
                     name="spe"
                     id="post-code"
                     placeholder="Liyu bota"
-                    className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+                    className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
                   />
                 </div>
               </div>
@@ -377,6 +507,33 @@ const NewUniversityProfileForm = () => {
           </div>
 
           {/* location input from map goes here */}
+          <div className="mb-5 w-full h-[300px] rounded-md border border-[#bfbfbf]">
+            {/* <MapInput location={formData.location} setLocation={setLocation} /> */}
+          </div>
+
+          <div className="mb-5 flex items-start">
+            <div className="flex items-center h-5">
+              <Input
+                id="remember"
+                aria-describedby="remember"
+                type="checkbox"
+                className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
+              />
+            </div>
+            <div className="ml-3 text-sm">
+              <label
+                htmlFor="remember"
+                className="text-gray-500 dark:text-gray-300"
+              >
+                By creating a university profile on Uni-connect you're agreeing
+                to the{" "}
+                <Link href="#" className="text-blue-600">
+                  terms and conditions
+                </Link>
+                .
+              </label>
+            </div>
+          </div>
 
           <div>
             <button className="btn w-full rounded-md bg-blue-600 py-3 px-8 text-center text-base font-semibold text-white outline-none">
@@ -390,4 +547,3 @@ const NewUniversityProfileForm = () => {
 };
 
 export default NewUniversityProfileForm;
-

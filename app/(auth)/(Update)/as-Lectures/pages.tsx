@@ -633,15 +633,15 @@ export default NewLecturerCVProfileForm;
 //     });
 //   };
 
-//   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-//     const file = e.target.files?.[0];
-//     if (file) {
-//       setFormData({
-//         ...formData,
-//         avatar: file
-//       });
-//     }
-//   };
+  // const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (file) {
+  //     setFormData({
+  //       ...formData,
+  //       avatar: file
+  //     });
+  //   }
+  // };
 
 //   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
 //     e.preventDefault();
@@ -665,21 +665,21 @@ export default NewLecturerCVProfileForm;
 //             <h2 className="md:w-1/3 uppercase tracking-wide text-sm sm:text-lg mb-6">Create Your CV</h2>
 //           </div>
 //           <form onSubmit={handleSubmit} encType="multipart/form-data">
-//             <div className="flex flex-1 px-3 text-center">
-//               <div className="button w-36 h-36 border-2 hover:border-yellow-500 text-cream mx-auto relative cursor-pointer rounded-xl bg-transparent">
-//                 <input
-//                   className="opacity-0 w-36 h-36 absolute cursor-pointer text-black"
-//                   type="file"
-//                   name="avatar"
-//                   onChange={handleImageChange}
-//                 />
-//                 {formData.avatar ? (
-//                   <img className="w-36 h-36 object-cover rounded-xl" src={URL.createObjectURL(formData.avatar)} alt="Selected" />
-//                 ) : (
-//                   <span>Profile</span>
-//                 )}
-//               </div>
-//             </div>
+            // <div className="flex flex-1 px-3 text-center">
+            //   <div className="button w-36 h-36 border-2 hover:border-yellow-500 text-cream mx-auto relative cursor-pointer rounded-xl bg-transparent">
+            //     <input
+            //       className="opacity-0 w-36 h-36 absolute cursor-pointer text-black"
+            //       type="file"
+            //       name="avatar"
+            //       onChange={handleImageChange}
+            //     />
+            //     {formData.avatar ? (
+            //       <img className="w-36 h-36 object-cover rounded-xl" src={URL.createObjectURL(formData.avatar)} alt="Selected" />
+            //     ) : (
+            //       <span>Profile</span>
+            //     )}
+            //   </div>
+            // </div>
 //             <div className="md:flex mb-8">
 //               <div className="md:w-1/3">
 //                 <legend className="uppercase tracking-wide text-sm">Contact</legend>
