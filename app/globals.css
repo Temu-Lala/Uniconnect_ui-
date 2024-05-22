@@ -49,19 +49,26 @@ body {
 
 
 /* Custom Scrollbar Styles*/
-html::-webkit-scrollbar {
+*::-webkit-scrollbar {
   width: 14px; /* width of the entire scrollbar */
 }
 
 
-html::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
   background-color: #636363; /* color of the scroll thumb */
   border-radius: 6px; /* roundness of the scroll thumb */
   border: 3px solid #1d232a; /* creates padding around scroll thumb */
 }
 
-html::-webkit-scrollbar-track{
+*::-webkit-scrollbar-track{
   background-color: #1d232a;
+}
+
+.uv-wrap::-webkit-scrollbar-thumb{
+  border: 3px solid #292a2c;;
+}
+.uv-wrap::-webkit-scrollbar-track{
+  background-color: transparent;
 }
 
 
@@ -92,6 +99,20 @@ html::-webkit-scrollbar-track{
   height: 50px !important;
 }
 
-.url .ant-input{
+.url .ant-input,
+.phone .ant-input {
   height: 50px !important;
+}
+
+.phone .ant-input-group-addon{
+  width: 100px;
+}
+
+.phone .ant-input-group-addon .ant-select{
+  width: 100px !important;
+}
+
+.custom-scroll::webkit-scrollbar{
+  width: none;
+  display: none;
 }

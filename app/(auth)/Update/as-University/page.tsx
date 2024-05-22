@@ -1,11 +1,12 @@
 "use client";
-// components/NewUniversityProfileForm.js
+
 import React, { useState, useEffect, ChangeEvent } from "react";
 import axios from "axios";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { Input, Select } from "antd";
+import { Button, Checkbox, DatePicker, Form, Input, Radio, Select, RadioChangeEvent  } from "antd";
 const { TextArea } = Input;
 import MapInput from "./MapInput";
+import AgreementDownload from "./AgreementDownload";
 import Link from "next/link";
 
 import { Upload } from "antd";
@@ -20,6 +21,7 @@ import {
   UniversityFormData,
   initialUniversityFormData,
 } from "@/app/types/types";
+import moment from "moment";
 const { Option } = Select;
 
 type FileType = RcFile;
@@ -27,6 +29,21 @@ type FileType = RcFile;
 const NewUniversityProfileForm = () => {
   const [formData, setFormData] = useState<UniversityFormData>(
     initialUniversityFormData
+  );
+
+  const dateFormat = "YYYY-MM-DD";
+  // Ensure formData.establishment_date is formatted correctly before setting it
+  const establishmentDate = formData.establishment_date
+    ? moment(formData.establishment_date, dateFormat)
+    : null;
+
+  const prefixSelector = (
+    <Form.Item name="prefix" noStyle initialValue="251">
+      <Select style={{ width: 70 }}>
+        <Option value="251">+251</Option>
+        <Option value="1">+1</Option>
+      </Select>
+    </Form.Item>
   );
 
   const selectBefore = (
@@ -43,7 +60,6 @@ const NewUniversityProfileForm = () => {
       <Option value=".org">.org</Option>
     </Select>
   );
-
 
   const onChangeAvatar: UploadProps["onChange"] = ({ fileList }) => {
     if (fileList.length > 0) {
@@ -110,13 +126,20 @@ const NewUniversityProfileForm = () => {
 
   const handleChange = (
     e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement 
     >
   ) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
+    });
+  };
+
+  const handleRadioChange = (e: RadioChangeEvent) => {
+    const { value } = e.target;
+    setFormData({
+      ...formData, "support_disabled" : value
     });
   };
 
@@ -144,25 +167,7 @@ const NewUniversityProfileForm = () => {
         );
         console.log("University profile created:", response.data);
         // Reset form fields after successful submission
-        setFormData({
-          name: "",
-          bio: "",
-          avatar: null,
-          background: null,
-          link: "",
-          category: "",
-          establishment_date: "",
-          number_of_lectures: 0,
-          number_of_departments: 0,
-          number_of_campuses: 0,
-          number_of_colleges: 0,
-          about: "",
-          region: "",
-          city: "",
-          pobox: "",
-          liyubota: "",
-          location: { lat: 0, lng: 0 },
-        });
+        setFormData(initialUniversityFormData);
       }
     } catch (error) {
       console.error("Error creating university profile:", error);
@@ -170,9 +175,13 @@ const NewUniversityProfileForm = () => {
   };
 
   return (
-    <section className="pt-[67px] bg-white flex flex-col items-center justify-center p-12">
-      <div className="mx-auto w-full md:w-10/12 xl:w-8/12 bg-white p-8 flex justify-center border shadow-lg">
-        <form className="w-full md:10/12 xl:w-8/12" onSubmit={handleSubmit}>
+    <section className="w-full bg-white flex flex-col items-center justify-center p-12">
+      <div className="mx-auto w-full md:w-8/12 bg-white p-8 flex justify-center border shadow-lg">
+        <Form
+          className="w-full sm:w-11/12"
+          layout="vertical"
+          onFinish={handleSubmit}
+        >
           <div className="my-5">
             <h2 className="text-lg font-bold text-black">
               Create a University Profile
@@ -180,176 +189,182 @@ const NewUniversityProfileForm = () => {
           </div>
 
           <div className="mb-5">
-            <label
-              htmlFor="name"
-              className="mb-3 block text-base font-medium text-[#06060f]"
-            >
-              Name of university
-            </label>
-            <Input
-              type="text"
+            <Form.Item
+              label="Name of university "
               name="name"
-              id="name"
-              placeholder="University name"
-              className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
-              value={formData.name}
-              onChange={handleChange}
-            />
+              rules={[
+                { required: true, message: "Please input university name!" },
+              ]}
+            >
+              <Input
+                type="text"
+                name="name"
+                id="name"
+                placeholder="University name"
+                className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+                value={formData.name}
+                onChange={handleChange}
+              />
+            </Form.Item>
+          </div>
+
+          <div className="mb-5 flex flex-col sm:flex-row gap-4">
+            <Form.Item label="Email" name="email" className="flex-1">
+              <Input
+                name="email"
+                value="university@gmail.com"
+                className="rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+              />
+            </Form.Item>
+
+            <div className="flex-1 phone">
+              <Form.Item
+                label="Phone"
+                name="phone"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input phone number!",
+                  },
+                ]}
+              >
+                <Input
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  addonBefore={prefixSelector}
+                  className="w-full h-12 rounded-md border border-[#bfbfbf]"
+                />
+              </Form.Item>
+            </div>
           </div>
           <div className="mb-5">
-            <label
-              htmlFor="name"
-              className="mb-3 block text-base font-medium text-[#06060f]"
-            >
-              Email
-            </label>
-            <Input
-              type="email"
-              name="email"
-              id="email"
-              placeholder="Email"
-              className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
-              value={"abebe@gmail.com"}
-            />
-          </div>
-          <div className="mb-5">
-            <label
-              htmlFor="phone"
-              className="mb-3 block text-base font-medium text-[#06060f]"
-            >
-              Bio
-            </label>
-            <TextArea
+            <Form.Item
+              label="Bio"
               name="bio"
-              value={formData.bio}
-              showCount
-              onChange={handleChange}
-              maxLength={100}
-              placeholder="About the university"
-              style={{ height: 120, resize: "none" }}
-              className="border border-[#bfbfbf]"
-            />
+              tooltip="Little information or bio about the campus"
+            >
+              <TextArea
+                name="bio"
+                value={formData.bio}
+                onChange={handleChange}
+                placeholder="Write something about the university"
+                showCount
+                rows={5}
+                maxLength={150}
+                className="rounded-md border border-[#bfbfbf]"
+                style={{ resize: "none" }}
+              />
+            </Form.Item>
           </div>
           <div className="mb-5 flex ">
             <div className="w-full sm:w-1/2">
-              <label
-                htmlFor="pp"
-                className="mb-3 block text-base font-medium text-[#06060f]"
-              >
-                Profile picture
-              </label>
-              <ImgCrop rotationSlider>
-                <Upload
-                  action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
-                  listType="picture-card"
-                  fileList={
-                    formData.avatar
-                      ? [
-                          {
-                            uid: "1",
-                            url: URL.createObjectURL(formData.avatar),
-                          },
-                        ]
-                      : []
-                  }
-                  onChange={onChangeAvatar}
-                  onPreview={onPreview}
-                  maxCount={1}
-                >
-                  {formData.avatar ? null : "+ Upload Avatar"}
-                </Upload>
-              </ImgCrop>
+              <Form.Item label="Profile picture">
+                <ImgCrop rotationSlider>
+                  <Upload
+                    className="w-fit border border-dotted border-[#bfbfbf] rounded-lg"
+                    listType="picture-card"
+                    fileList={
+                      formData.avatar
+                        ? [
+                            {
+                              uid: "1",
+                              name: formData.avatar.name,
+                              url: URL.createObjectURL(formData.avatar),
+                            },
+                          ]
+                        : []
+                    }
+                    onChange={onChangeAvatar}
+                    onPreview={onPreview}
+                    maxCount={1}
+                  >
+                    {formData.avatar ? null : "+ Upload Avatar"}
+                  </Upload>
+                </ImgCrop>
+              </Form.Item>
             </div>
 
             <div className="w-full sm:w-1/2">
-              <label
-                htmlFor="pp"
-                className="mb-3 block text-base font-medium text-[#06060f]"
-              >
-                Cover picture
-              </label>
-              <ImgCrop aspect={16 / 9} rotationSlider>
-                <Upload
-                  action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
-                  listType="picture-card"
-                  fileList={
-                    formData.background
-                      ? [
-                          {
-                            uid: "1",
-                            url: URL.createObjectURL(formData.background),
-                          },
-                        ]
-                      : []
-                  }
-                  onChange={onChangeBackground}
-                  onPreview={onPreview}
-                  maxCount={1}
-                >
-                  {formData.background ? null : "+ Upload Background"}
-                </Upload>
-              </ImgCrop>
+              <Form.Item label="Cover photo">
+                <ImgCrop aspect={16 / 9} rotationSlider>
+                  <Upload
+                    className="w-fit border border-dotted border-[#bfbfbf] rounded-lg"
+                    listType="picture-card"
+                    fileList={
+                      formData.background
+                        ? [
+                            {
+                              uid: "1",
+                              name: formData.background.name,
+                              url: URL.createObjectURL(formData.background),
+                            },
+                          ]
+                        : []
+                    }
+                    onChange={onChangeBackground}
+                    onPreview={onPreview}
+                    maxCount={1}
+                  >
+                    {formData.background ? null : "+ Upload Background"}
+                  </Upload>
+                </ImgCrop>
+              </Form.Item>
             </div>
           </div>
           <div className="mb-5 url">
-            <label
-              htmlFor="name"
-              className="mb-3 block text-base font-medium text-[#06060f]"
-            >
-              Website URL
-            </label>
-            <Input
-              style={{ height: "100%" }}
-              className="w-full !h-full text-[#6B7280] rounded-md border border-[#bfbfbf] outline-none focus:border-blue-600 focus:shadow-md"
-              addonBefore={selectBefore} 
-              addonAfter={selectAfter}
-              placeholder="Please enter url"
-            />
+            <Form.Item label="Website URL">
+              <Input
+                type="text"
+                name="link"
+                style={{ height: "100%" }}
+                className="w-full !h-full text-[#6B7280] rounded-md border border-[#bfbfbf] outline-none focus:border-blue-600 focus:shadow-md"
+                addonBefore={selectBefore}
+                addonAfter={selectAfter}
+                placeholder="Please enter url"
+                value={formData.link}
+                onChange={handleChange}
+              />
+            </Form.Item>
           </div>
-          <div className="mb-5">
-            <label
-              htmlFor="name"
-              className="mb-3 block text-base font-medium text-[#06060f]"
-            >
-              Establishment Date
-            </label>
-            <Input
-              type="date"
-              name="establishment_date"
-              id="establishment_date"
-              placeholder="Establishment date"
-              className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
-              value={formData.establishment_date}
-              onChange={handleChange}
-            />
+
+          <div className="mb-5 flex flex-col sm:flex-row gap-4">
+            <Form.Item label="Category" className="flex-1">
+              <Select
+                // name="category"
+                placeholder="Category"
+                className="w-full h-12 rounded-md border border-[#bfbfbf]"
+                value={formData.category}
+                onChange={(value) =>
+                  setFormData({ ...formData, category: value })
+                }
+                options={[
+                  { value: "applied", label: "Applied" },
+                  { value: "engeneering", label: "Engeneering" },
+                ]}
+              />
+            </Form.Item>
+
+            <Form.Item label="Establishment Date" className="flex-1">
+              <DatePicker
+                name="establishment_date"
+                id="establishment_date"
+                placeholder="Establishment date"
+                className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+                value={establishmentDate}
+                format={dateFormat}
+                onChange={(date, dateString) => {
+                  setFormData({
+                    ...formData,
+                    establishment_date: dateString.toString(),
+                  });
+                }}
+              />
+            </Form.Item>
           </div>
-          <div className="mb-5">
-            <label
-              htmlFor="countries"
-              className="mb-3 block text-base font-medium text-[#06060f]"
-            >
-              Category
-            </label>
-            <Select
-              name="category"
-              placeholder="Category"
-              className="w-full h-12 rounded-md border border-[#bfbfbf]"
-              value={formData.category}
-              // onChange={handleChange}
-              options={[
-                { value: "applied", label: "Applied" },
-                { value: "research", label: "Research" },
-              ]}
-            />
-          </div>
-          <div className="flex flex-wrap justify-between">
-            <div className="mb-5">
-              <label
-                htmlFor="name"
-                className="mb-3 block text-base font-medium text-[#06060f]"
-              >
-                Number of campus
-              </label>
+
+          <div className="mb-5 flex flex-col sm:flex-row gap-4">
+            <Form.Item label="Number of campus" className="flex-1">
               <Input
                 type="number"
                 name="number_of_campuses"
@@ -359,15 +374,9 @@ const NewUniversityProfileForm = () => {
                 value={formData.number_of_campuses}
                 onChange={handleChange}
               />
-            </div>
+            </Form.Item>
 
-            <div className="mb-5">
-              <label
-                htmlFor="name"
-                className="mb-3 block text-base font-medium text-[#06060f]"
-              >
-                Number of colleges
-              </label>
+            <Form.Item label="Number of colleges" className="flex-1">
               <Input
                 type="number"
                 name="number_of_colleges"
@@ -377,15 +386,9 @@ const NewUniversityProfileForm = () => {
                 value={formData.number_of_colleges}
                 onChange={handleChange}
               />
-            </div>
+            </Form.Item>
 
-            <div className="mb-5">
-              <label
-                htmlFor="name"
-                className="mb-3 block text-base font-medium text-[#06060f]"
-              >
-                Number of departments
-              </label>
+            <Form.Item label="Number of departments" className="flex-1">
               <Input
                 type="number"
                 name="number_of_departments"
@@ -395,15 +398,9 @@ const NewUniversityProfileForm = () => {
                 value={formData.number_of_departments}
                 onChange={handleChange}
               />
-            </div>
+            </Form.Item>
 
-            <div className="mb-5">
-              <label
-                htmlFor="name"
-                className="mb-3 block text-base font-medium text-[#06060f]"
-              >
-                Number of lectures
-              </label>
+            <Form.Item label="Number of lectures" className="flex-1">
               <Input
                 type="number"
                 name="number_of_lectures"
@@ -413,26 +410,31 @@ const NewUniversityProfileForm = () => {
                 value={formData.number_of_lectures}
                 onChange={handleChange}
               />
-            </div>
+            </Form.Item>
           </div>
 
           <div className="mb-5">
-            <label
-              htmlFor="phone"
-              className="mb-3 block text-base font-medium text-[#06060f]"
-            >
-              More about
-            </label>
-            <TextArea
-              name="about"
-              value={formData.about}
-              showCount
-              onChange={handleChange}
-              maxLength={500}
-              placeholder="More details about the university"
-              className="rounded-md border border-[#bfbfbf]"
-              style={{ height: 220, resize: "none" }}
-            />
+            <Form.Item label="Do the university support disabled students?">
+              <Radio.Group onChange={handleRadioChange} name="disabled" value={formData.support_disabled}>
+                <Radio value={1}>Yes we support and have the facility/courses</Radio>
+                <Radio value={2}>No we don't support </Radio>
+              </Radio.Group>
+            </Form.Item>
+          </div>
+
+          <div className="mb-5">
+            <Form.Item label="More about">
+              <TextArea
+                name="about"
+                value={formData.about}
+                showCount
+                onChange={handleChange}
+                maxLength={500}
+                placeholder="More details about the university"
+                className="rounded-md border border-[#bfbfbf]"
+                style={{ height: 220, resize: "none" }}
+              />
+            </Form.Item>
           </div>
 
           <div className="mb-5 pt-3">
@@ -443,9 +445,9 @@ const NewUniversityProfileForm = () => {
               <div className="w-full px-3 sm:w-1/2">
                 <div className="mb-5">
                   <Select
-                    name="region"
+                    // name="region"
                     value={formData.region}
-                    placeholder="Region"
+                    placeholder="Select a region"
                     className="w-full h-12 rounded-md border border-[#bfbfbf]"
                     // onChange={handleChange}
                     options={[
@@ -494,7 +496,7 @@ const NewUniversityProfileForm = () => {
               </div>
               <div className="w-full px-3 sm:w-1/2">
                 <div className="mb-5">
-                  <input
+                  <Input
                     type="text"
                     name="spe"
                     id="post-code"
@@ -511,36 +513,27 @@ const NewUniversityProfileForm = () => {
             {/* <MapInput location={formData.location} setLocation={setLocation} /> */}
           </div>
 
-          <div className="mb-5 flex items-start">
-            <div className="flex items-center h-5">
-              <Input
-                id="remember"
-                aria-describedby="remember"
-                type="checkbox"
-                className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
-              />
-            </div>
-            <div className="ml-3 text-sm">
-              <label
-                htmlFor="remember"
-                className="text-gray-500 dark:text-gray-300"
-              >
-                By creating a university profile on Uni-connect you're agreeing
-                to the{" "}
-                <Link href="#" className="text-blue-600">
-                  terms and conditions
-                </Link>
-                .
-              </label>
-            </div>
+          <Form.Item label="Download this agreement pdf and fill out.">
+            <AgreementDownload />
+          </Form.Item>
+
+          <div className="mb-5 h-5">
+            <Checkbox>
+              By creating a university profile on Uni-connect you're agreeing to
+              the{" "}
+              <Link href="#" className="text-blue-600">
+                terms and conditions
+              </Link>
+              .
+            </Checkbox>
           </div>
 
           <div>
-            <button className="btn w-full rounded-md bg-blue-600 py-3 px-8 text-center text-base font-semibold text-white outline-none">
+            <Button className="btn w-full rounded-md bg-blue-600 py-3 px-8 text-center text-base font-semibold text-white border-none">
               Create university profile
-            </button>
+            </Button>
           </div>
-        </form>
+        </Form>
       </div>
     </section>
   );

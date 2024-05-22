@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
-      <body className={`${inter.className} flex flex-col min-h-[100vh]`}>
+      <body className={`${inter.className} flex flex-col min-h-[100vh]0 bg-[#262729]`}>
         <div className="fixed top-0 left-0 right-0 z-50">
          <NavBar />
         </div>
