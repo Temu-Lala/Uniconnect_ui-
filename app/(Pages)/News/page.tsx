@@ -5,6 +5,9 @@ import Avatar from '../../Components/Avater/Avater';
 import ThemeController from '../../Components/ThemController/ThemController';
 import Link from 'next/link';
 import Image from 'next/image'
+import { LiaTimesSolid } from "react-icons/lia";
+
+
 
 interface Comment {
   id: number;
@@ -332,9 +335,13 @@ const copyLink = async () => {
             <div className="h-14 w-14 rounded-full bg-gray-300 overflow-hidden outline outline-2 outline-blue-600">
               <Image src={"/images/lectures/temesgen.jfif"} alt={item.ownerName} width={56} height={56} className='w-full h-full object-contain rounded-full' />
             </div>
-            <div className="flex-1 "></div>
+            <div className="flex-1 ">
+              <p className=''>{item.ownerName}</p>
+            </div>
             <div className="h-14 w-14 flex items-center justify-center"></div>
-            <div className="h-14 w-14 flex items-center justify-center"></div>
+            <div className="h-14 w-14 flex items-center justify-center">
+              <LiaTimesSolid />
+            </div>
           </div>
           <div className="post-item-header">
             <Avatar username={item.ownerName} avatarUrl={item.ownerAvatar} />

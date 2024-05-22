@@ -3,7 +3,16 @@
 import React, { useState, useEffect, ChangeEvent } from "react";
 import axios from "axios";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { Button, Checkbox, DatePicker, Form, Input, Radio, Select, RadioChangeEvent  } from "antd";
+import {
+  Button,
+  Checkbox,
+  DatePicker,
+  Form,
+  Input,
+  Radio,
+  Select,
+  RadioChangeEvent,
+} from "antd";
 const { TextArea } = Input;
 import MapInput from "./MapInput";
 import AgreementDownload from "./AgreementDownload";
@@ -126,7 +135,7 @@ const NewUniversityProfileForm = () => {
 
   const handleChange = (
     e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement 
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
     const { name, value } = e.target;
@@ -139,7 +148,8 @@ const NewUniversityProfileForm = () => {
   const handleRadioChange = (e: RadioChangeEvent) => {
     const { value } = e.target;
     setFormData({
-      ...formData, "support_disabled" : value
+      ...formData,
+      support_disabled: value,
     });
   };
 
@@ -150,14 +160,13 @@ const NewUniversityProfileForm = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (values: any) => {
     try {
       const authToken = localStorage.getItem("token"); // Assuming you store the token in localStorage upon login
       if (authToken) {
         const response = await axios.post(
           "http://127.0.0.1:8000/university_profiles/",
-          formData,
+          values,
           {
             headers: {
               "Content-Type": "application/json",
@@ -172,14 +181,19 @@ const NewUniversityProfileForm = () => {
     } catch (error) {
       console.error("Error creating university profile:", error);
     }
+
+    console.log("uv data :- ", formData);
   };
 
+ 
   return (
     <section className="w-full bg-white flex flex-col items-center justify-center p-12">
       <div className="mx-auto w-full md:w-8/12 bg-white p-8 flex justify-center border shadow-lg">
         <Form
+        name="univesity_form"
           className="w-full sm:w-11/12"
           layout="vertical"
+          initialValues={{ remember: true }}
           onFinish={handleSubmit}
         >
           <div className="my-5">
@@ -415,8 +429,14 @@ const NewUniversityProfileForm = () => {
 
           <div className="mb-5">
             <Form.Item label="Do the university support disabled students?">
-              <Radio.Group onChange={handleRadioChange} name="disabled" value={formData.support_disabled}>
-                <Radio value={1}>Yes we support and have the facility/courses</Radio>
+              <Radio.Group
+                onChange={handleRadioChange}
+                name="disabled"
+                value={formData.support_disabled}
+              >
+                <Radio value={1}>
+                  Yes we support and have the facility/courses
+                </Radio>
                 <Radio value={2}>No we don't support </Radio>
               </Radio.Group>
             </Form.Item>
@@ -448,8 +468,10 @@ const NewUniversityProfileForm = () => {
                     // name="region"
                     value={formData.region}
                     placeholder="Select a region"
-                    className="w-full h-12 rounded-md border border-[#bfbfbf]"
-                    // onChange={handleChange}
+                    className="w-full h-12 rounded-md border text-gray-800 border-[#bfbfbf]"
+                    onChange={(value) =>
+                      setFormData({ ...formData, region: value })
+                    }
                     options={[
                       { value: "Addis Abeba", label: "Addis Abeba" },
                       { value: "Dire Dawa", label: "Dire Dawa" },
@@ -469,6 +491,7 @@ const NewUniversityProfileForm = () => {
                   />
                 </div>
               </div>
+
               <div className="w-full px-3 sm:w-1/2">
                 <div className="mb-5">
                   <Input
@@ -477,6 +500,7 @@ const NewUniversityProfileForm = () => {
                     id="city"
                     placeholder="City"
                     value={formData.city}
+                    onChange={handleChange}
                     className="w-full rounded-md border border-[#bfbfbf] bg-transparent py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
                   />
                 </div>
@@ -490,6 +514,7 @@ const NewUniversityProfileForm = () => {
                     id="pobox"
                     placeholder="Po Box"
                     value={formData.pobox}
+                    onChange={handleChange}
                     className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
                   />
                 </div>
@@ -529,7 +554,10 @@ const NewUniversityProfileForm = () => {
           </div>
 
           <div>
-            <Button className="btn w-full rounded-md bg-blue-600 py-3 px-8 text-center text-base font-semibold text-white border-none">
+            <Button
+              htmlType="submit"
+              className="btn w-full rounded-md bg-blue-600 py-3 px-8 text-center text-base font-semibold text-white border-none"
+            >
               Create university profile
             </Button>
           </div>
