@@ -130,7 +130,7 @@ const NewsFeed = () => {
   const handleCommentChange = (e: ChangeEvent<HTMLTextAreaElement>, postId: number) => {
     setComments({ ...comments, [postId]: e.target.value });
   };
-
+ console.log( " respons " , newsItems)
   const handleAddComment = async (postId: number, type: string) => {
     if (!comments[postId]?.trim()) {
       alert('Comment cannot be empty.');
@@ -326,6 +326,10 @@ const copyLink = async () => {
       
     };
   }, []);
+
+
+  console.log( " respons " , newsItems)
+
   return (
     <section className="post-feed-container bg-red-200 max-w-6xl">
       {error && <div className="error-message">{error}</div>}
