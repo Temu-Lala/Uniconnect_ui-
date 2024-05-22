@@ -11,7 +11,7 @@ const VoiceCall = () => {
   const agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
 
   const appId = 'YOUR_APP_ID';
-  const token = 'YOUR_TOKEN'; // You may need to generate a token from your server
+  const token = 'YOUR_TOKEN'; 
   const channelName = 'YOUR_CHANNEL_NAME';
 
   useEffect(() => {
