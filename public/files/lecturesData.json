@@ -1,0 +1,534 @@
+[
+    {
+      "id": "001",
+      "university_id": "1",
+      "campus_profile_id": "1",
+      "college_profile_id": "1",
+      "department_profile_id": "1",
+      "lecturer_id": "1",
+      "avatar": "/images/lectures/lecture-2.jpg",
+      "cover": null,
+      "first_name": "John",
+      "last_name": "Doe",
+      "gender": "Male",
+      "title": "Professor",
+      "field": "Computer Science",
+      "courses_taught": ["Introduction to Programming", "Database Management Systems"],
+      "skills": ["Java", "Python", "SQL"],
+      "about": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "phone": "1234567890",
+      "email": "john.doe@example.com",
+      "linkedin": "https://www.linkedin.com/in/johndoe/",
+      "education_background": [
+        {
+          "school": "University of ABC",
+          "degree": "PhD",
+          "fieldOfStudy": "Computer Science",
+          "year_finished": "2010"
+        },
+        {
+          "school": "University of XYZ",
+          "degree": "MSc",
+          "fieldOfStudy": "Computer Science",
+          "year_finished": "2007"
+        }
+      ],
+      "languages": ["English", "Spanish"],
+      "professional_experience": [
+        {
+          "positionName": "Senior Software Engineer",
+          "company": "Tech Corp",
+          "start_date": "2008",
+          "end_date": "2015"
+        },
+        {
+          "positionName": "Assistant Professor",
+          "company": "University of ABC",
+          "start_date": "2015",
+          "end_date": "2020"
+        }
+      ],
+      "publications": ["Publication 1", "Publication 2"],
+      "date_joined": "2020-01-01",
+      "awards": ["Best Teacher Award", "Outstanding Researcher Award"]
+    },
+    {
+      "id": "002",
+      "university_id": "1",
+      "campus_profile_id": "1",
+      "college_profile_id": "1",
+      "department_profile_id": "1",
+      "lecturer_id": "2",
+      "avatar": "/images/lectures/lecture-3.png",
+      "cover": null,
+      "first_name": "Jane",
+      "last_name": "Smith",
+      "gender": "Female",
+      "title": "Associate Professor",
+      "field": "Physics",
+      "courses_taught": ["Quantum Mechanics", "Thermodynamics"],
+      "skills": ["Mathematics", "Quantum Physics"],
+      "about": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "phone": "9876543210",
+      "email": "jane.smith@example.com",
+      "linkedin": "https://www.linkedin.com/in/janesmith/",
+      "education_background": [
+        {
+          "school": "University of ABC",
+          "degree": "PhD",
+          "fieldOfStudy": "Physics",
+          "year_finished": "2009"
+        },
+        {
+          "school": "University of XYZ",
+          "degree": "MSc",
+          "fieldOfStudy": "Physics",
+          "year_finished": "2006"
+        }
+      ],
+      "languages": ["English", "French"],
+      "professional_experience": [
+        {
+          "positionName": "Research Scientist",
+          "company": "Physics Lab",
+          "start_date": "2006",
+          "end_date": "2012"
+        },
+        {
+          "positionName": "Assistant Professor",
+          "company": "University of ABC",
+          "start_date": "2012",
+          "end_date": "2018"
+        }
+      ],
+      "publications": ["Publication 3", "Publication 4"],
+      "date_joined": "2018-01-01",
+      "awards": ["Best Researcher Award", "Outstanding Teacher Award"]
+    },
+    {
+      "id": "003",
+      "university_id": "1",
+      "campus_profile_id": "1",
+      "college_profile_id": "1",
+      "department_profile_id": "1",
+      "lecturer_id": "3",
+      "avatar": "/images/lectures/lecture-4.jpg",
+      "cover": null,
+      "first_name": "David",
+      "last_name": "Brown",
+      "gender": "Male",
+      "title": "Assistant Professor",
+      "field": "Chemistry",
+      "courses_taught": ["Organic Chemistry", "Inorganic Chemistry"],
+      "skills": ["Chemical Analysis", "Laboratory Techniques"],
+      "about": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "phone": "0123456789",
+      "email": "david.brown@example.com",
+      "linkedin": "https://www.linkedin.com/in/davidbrown/",
+      "education_background": [
+        {
+          "school": "University of ABC",
+          "degree": "PhD",
+          "fieldOfStudy": "Chemistry",
+          "year_finished": "2011"
+        },
+        {
+          "school": "University of XYZ",
+          "degree": "MSc",
+          "fieldOfStudy": "Chemistry",
+          "year_finished": "2008"
+        }
+      ],
+      "languages": ["English", "German"],
+      "professional_experience": [
+        {
+          "positionName": "Chemist",
+          "company": "Chemistry Lab",
+          "start_date": "2008",
+          "end_date": "2014"
+        },
+        {
+          "positionName": "Associate Professor",
+          "company": "University of ABC",
+          "start_date": "2014",
+          "end_date": "2020"
+        }
+      ],
+      "publications": ["Publication 5", "Publication 6"],
+      "date_joined": "2020-01-01",
+      "awards": ["Best Researcher Award", "Best Teacher Award"]
+    },
+    {
+      "id": "004",
+      "university_id": "1",
+      "campus_profile_id": "1",
+      "college_profile_id": "1",
+      "department_profile_id": "1",
+      "lecturer_id": "4",
+      "avatar": null,
+      "cover": null,
+      "first_name": "Emily",
+      "last_name": "Johnson",
+      "gender": "Female",
+      "title": "Professor",
+      "field": "Biology",
+      "courses_taught": ["Cell Biology", "Genetics"],
+      "skills": ["Microscopy", "Genetic Engineering"],
+      "about": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "phone": "9876543210",
+      "email": "emily.johnson@example.com",
+      "linkedin": "https://www.linkedin.com/in/emilyjohnson/",
+      "education_background": [
+        {
+          "school": "University of ABC",
+          "degree": "PhD",
+          "fieldOfStudy": "Biology",
+          "year_finished": "2012"
+        },
+        {
+          "school": "University of XYZ",
+          "degree": "MSc",
+          "fieldOfStudy": "Biology",
+          "year_finished": "2009"
+        }
+      ],
+      "languages" : ["English", "Spanish"],
+      "professional_experience": [
+        {
+          "positionName": "Research Scientist",
+          "company": "Biology Lab",
+          "start_date": "2009",
+          "end_date": "2015"
+        },
+        {
+          "positionName": "Professor",
+          "company": "University of ABC",
+          "start_date": "2015",
+          "end_date": "2020"
+        }
+      ],
+      "publications": ["Publication 7", "Publication 8"],
+      "date_joined": "2020-01-01",
+      "awards": ["Best Researcher Award", "Outstanding Teacher Award"]
+    },
+    {
+      "id": "005",
+      "university_id": "1",
+      "campus_profile_id": "1",
+      "college_profile_id": "1",
+      "department_profile_id": "1",
+      "lecturer_id": "5",
+      "avatar": "/images/lectures/temesgen.jfif",
+      "cover": null,
+      "first_name": "Michael",
+      "last_name": "Williams",
+      "gender": "Male",
+      "title": "Professor",
+      "field": "Mathematics",
+      "courses_taught": ["Calculus", "Linear Algebra"],
+      "skills": ["Mathematical Analysis", "Statistics"],
+      "about": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "phone": "0123456789",
+      "email": "michael.williams@example.com",
+      "linkedin": "https://www.linkedin.com/in/michaelwilliams/",
+      "education_background": [
+        {
+          "school": "University of ABC",
+          "degree": "PhD",
+          "fieldOfStudy": "Mathematics",
+          "year_finished": "2013"
+        },
+        {
+          "school": "University of XYZ",
+          "degree": "MSc",
+          "fieldOfStudy": "Mathematics",
+          "year_finished": "2010"
+        }
+      ],
+      "languages": ["English", "Chinese"],
+      "professional_experience": [
+        {
+          "positionName": "Mathematician",
+          "company": "Mathematics Institute",
+          "start_date": "2010",
+          "end_date": "2016"
+        },
+        {
+          "positionName": "Professor",
+          "company": "University of ABC",
+          "start_date": "2016",
+          "end_date": "2021"
+        }
+      ],
+      "publications": ["Publication 9", "Publication 10"],
+      "date_joined": "2021-01-01",
+      "awards": ["Best Researcher Award", "Best Teacher Award"]
+    },
+    {
+      "id": "006",
+      "university_id": "1",
+      "campus_profile_id": "1",
+      "college_profile_id": "1",
+      "department_profile_id": "1",
+      "lecturer_id": "1",
+      "avatar": "/images/lectures/lecture-2.jpg",
+      "cover": null,
+      "first_name": "John",
+      "last_name": "Doe",
+      "gender": "Male",
+      "title": "Professor",
+      "field": "Computer Science",
+      "courses_taught": ["Introduction to Programming", "Database Management Systems"],
+      "skills": ["Java", "Python", "SQL"],
+      "about": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "phone": "1234567890",
+      "email": "john.doe@example.com",
+      "linkedin": "https://www.linkedin.com/in/johndoe/",
+      "education_background": [
+        {
+          "school": "University of ABC",
+          "degree": "PhD",
+          "fieldOfStudy": "Computer Science",
+          "year_finished": "2010"
+        },
+        {
+          "school": "University of XYZ",
+          "degree": "MSc",
+          "fieldOfStudy": "Computer Science",
+          "year_finished": "2007"
+        }
+      ],
+      "languages": ["English", "Spanish"],
+      "professional_experience": [
+        {
+          "positionName": "Senior Software Engineer",
+          "company": "Tech Corp",
+          "start_date": "2008",
+          "end_date": "2015"
+        },
+        {
+          "positionName": "Assistant Professor",
+          "company": "University of ABC",
+          "start_date": "2015",
+          "end_date": "2020"
+        }
+      ],
+      "publications": ["Publication 1", "Publication 2"],
+      "date_joined": "2020-01-01",
+      "awards": ["Best Teacher Award", "Outstanding Researcher Award"]
+    },
+    {
+      "id": "007",
+      "university_id": "1",
+      "campus_profile_id": "1",
+      "college_profile_id": "1",
+      "department_profile_id": "1",
+      "lecturer_id": "3",
+      "avatar": "/images/lectures/lecture-4.jpg",
+      "cover": null,
+      "first_name": "David",
+      "last_name": "Brown",
+      "gender": "Male",
+      "title": "Assistant Professor",
+      "field": "Chemistry",
+      "courses_taught": ["Organic Chemistry", "Inorganic Chemistry"],
+      "skills": ["Chemical Analysis", "Laboratory Techniques"],
+      "about": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "phone": "0123456789",
+      "email": "david.brown@example.com",
+      "linkedin": "https://www.linkedin.com/in/davidbrown/",
+      "education_background": [
+        {
+          "school": "University of ABC",
+          "degree": "PhD",
+          "fieldOfStudy": "Chemistry",
+          "year_finished": "2011"
+        },
+        {
+          "school": "University of XYZ",
+          "degree": "MSc",
+          "fieldOfStudy": "Chemistry",
+          "year_finished": "2008"
+        }
+      ],
+      "languages": ["English", "German"],
+      "professional_experience": [
+        {
+          "positionName": "Chemist",
+          "company": "Chemistry Lab",
+          "start_date": "2008",
+          "end_date": "2014"
+        },
+        {
+          "positionName": "Associate Professor",
+          "company": "University of ABC",
+          "start_date": "2014",
+          "end_date": "2020"
+        }
+      ],
+      "publications": ["Publication 5", "Publication 6"],
+      "date_joined": "2020-01-01",
+      "awards": ["Best Researcher Award", "Best Teacher Award"]
+    },
+    {
+      "id": "008",
+      "university_id": "1",
+      "campus_profile_id": "1",
+      "college_profile_id": "1",
+      "department_profile_id": "1",
+      "lecturer_id": "2",
+      "avatar": "/images/lectures/lecture-3.png",
+      "cover": null,
+      "first_name": "Jane",
+      "last_name": "Smith",
+      "gender": "Female",
+      "title": "Associate Professor",
+      "field": "Physics",
+      "courses_taught": ["Quantum Mechanics", "Thermodynamics"],
+      "skills": ["Mathematics", "Quantum Physics"],
+      "about": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "phone": "9876543210",
+      "email": "jane.smith@example.com",
+      "linkedin": "https://www.linkedin.com/in/janesmith/",
+      "education_background": [
+        {
+          "school": "University of ABC",
+          "degree": "PhD",
+          "fieldOfStudy": "Physics",
+          "year_finished": "2009"
+        },
+        {
+          "school": "University of XYZ",
+          "degree": "MSc",
+          "fieldOfStudy": "Physics",
+          "year_finished": "2006"
+        }
+      ],
+      "languages": ["English", "French"],
+      "professional_experience": [
+        {
+          "positionName": "Research Scientist",
+          "company": "Physics Lab",
+          "start_date": "2006",
+          "end_date": "2012"
+        },
+        {
+          "positionName": "Assistant Professor",
+          "company": "University of ABC",
+          "start_date": "2012",
+          "end_date": "2018"
+        }
+      ],
+      "publications": ["Publication 3", "Publication 4"],
+      "date_joined": "2018-01-01",
+      "awards": ["Best Researcher Award", "Outstanding Teacher Award"]
+    },
+    {
+      "id": "009",
+      "university_id": "1",
+      "campus_profile_id": "1",
+      "college_profile_id": "1",
+      "department_profile_id": "1",
+      "lecturer_id": "4",
+      "avatar": null,
+      "cover": null,
+      "first_name": "Emily",
+      "last_name": "Johnson",
+      "gender": "Female",
+      "title": "Professor",
+      "field": "Biology",
+      "courses_taught": ["Cell Biology", "Genetics"],
+      "skills": ["Microscopy", "Genetic Engineering"],
+      "about": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "phone": "9876543210",
+      "email": "emily.johnson@example.com",
+      "linkedin": "https://www.linkedin.com/in/emilyjohnson/",
+      "education_background": [
+        {
+          "school": "University of ABC",
+          "degree": "PhD",
+          "fieldOfStudy": "Biology",
+          "year_finished": "2012"
+        },
+        {
+          "school": "University of XYZ",
+          "degree": "MSc",
+          "fieldOfStudy": "Biology",
+          "year_finished": "2009"
+        }
+      ],
+      "languages" : ["English", "Spanish"],
+      "professional_experience": [
+        {
+          "positionName": "Research Scientist",
+          "company": "Biology Lab",
+          "start_date": "2009",
+          "end_date": "2015"
+        },
+        {
+          "positionName": "Professor",
+          "company": "University of ABC",
+          "start_date": "2015",
+          "end_date": "2020"
+        }
+      ],
+      "publications": ["Publication 7", "Publication 8"],
+      "date_joined": "2020-01-01",
+      "awards": ["Best Researcher Award", "Outstanding Teacher Award"]
+    },
+    {
+      "id": "009",
+      "university_id": "1",
+      "campus_profile_id": "1",
+      "college_profile_id": "1",
+      "department_profile_id": "1",
+      "lecturer_id": "1",
+      "avatar": "/images/lectures/lecture-2.jpg",
+      "cover": null,
+      "first_name": "John",
+      "last_name": "Doe",
+      "gender": "Male",
+      "title": "Professor",
+      "field": "Computer Science",
+      "courses_taught": ["Introduction to Programming", "Database Management Systems"],
+      "skills": ["Java", "Python", "SQL"],
+      "about": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "phone": "1234567890",
+      "email": "john.doe@example.com",
+      "linkedin": "https://www.linkedin.com/in/johndoe/",
+      "education_background": [
+        {
+          "school": "University of ABC",
+          "degree": "PhD",
+          "fieldOfStudy": "Computer Science",
+          "year_finished": "2010"
+        },
+        {
+          "school": "University of XYZ",
+          "degree": "MSc",
+          "fieldOfStudy": "Computer Science",
+          "year_finished": "2007"
+        }
+      ],
+      "languages": ["English", "Spanish"],
+      "professional_experience": [
+        {
+          "positionName": "Senior Software Engineer",
+          "company": "Tech Corp",
+          "start_date": "2008",
+          "end_date": "2015"
+        },
+        {
+          "positionName": "Assistant Professor",
+          "company": "University of ABC",
+          "start_date": "2015",
+          "end_date": "2020"
+        }
+      ],
+      "publications": ["Publication 1", "Publication 2"],
+      "date_joined": "2020-01-01",
+      "awards": ["Best Teacher Award", "Outstanding Researcher Award"]
+    }
+  ]
+  
+  

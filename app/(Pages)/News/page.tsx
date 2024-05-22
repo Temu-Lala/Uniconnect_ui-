@@ -4,6 +4,7 @@ import { FaThumbsUp, FaThumbsDown, FaShare, FaEdit, FaCopy } from 'react-icons/f
 import Avatar from '../../Components/Avater/Avater';
 import ThemeController from '../../Components/ThemController/ThemController';
 import Link from 'next/link';
+import Image from 'next/image'
 
 interface Comment {
   id: number;
@@ -120,6 +121,8 @@ const NewsFeed = () => {
       }
     }
   };
+
+  console.log("News Item : ", newsItems)
 
   const handleCommentChange = (e: ChangeEvent<HTMLTextAreaElement>, postId: number) => {
     setComments({ ...comments, [postId]: e.target.value });
@@ -316,6 +319,8 @@ const copyLink = async () => {
   useEffect(() => {
     return () => {
       setShowShareModal(false);
+
+      
     };
   }, []);
 
@@ -323,11 +328,19 @@ const copyLink = async () => {
   console.log( " respons " , newsItems)
 
   return (
-    <div className="news-feed-container">
+    <section className="post-feed-container bg-red-200 max-w-6xl">
       {error && <div className="error-message">{error}</div>}
       {newsItems.map(item => (
-        <div className="news-item" key={item.id}>
-          <div className="news-item-header">
+        <div className="rounded-lg overflow-hidden bg-[#272727]" key={item.id}>
+          <div className="w-full p-3 flex">
+            <div className="h-14 w-14 rounded-full bg-gray-300 overflow-hidden outline outline-2 outline-blue-600">
+              <Image src={"/images/lectures/temesgen.jfif"} alt={item.ownerName} width={56} height={56} className='w-full h-full object-contain rounded-full' />
+            </div>
+            <div className="flex-1 "></div>
+            <div className="h-14 w-14 flex items-center justify-center"></div>
+            <div className="h-14 w-14 flex items-center justify-center"></div>
+          </div>
+          <div className="post-item-header">
             <Avatar username={item.ownerName} avatarUrl={item.ownerAvatar} />
             <div className="owner-name">{item.ownerName}</div>
             <div className="post-date">{item.date}</div>
@@ -418,7 +431,7 @@ const copyLink = async () => {
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 };
 

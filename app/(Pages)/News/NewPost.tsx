@@ -8,14 +8,15 @@ import { useAuth } from "@/app/contexts/AuthContext";
 const NewPost = () => {
   const newPostModalRef = useRef<HTMLDialogElement>(null);
   const loginModalRef = useRef<HTMLDialogElement>(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth() || true;
   
   const handleNewPostClick = () => {
-    if (isAuthenticated) {
-      newPostModalRef.current?.showModal();
-    } else {
-      loginModalRef.current?.showModal();
-    }
+    // if (isAuthenticated) {
+    //   newPostModalRef.current?.showModal();
+    // } else {
+    //   loginModalRef.current?.showModal();
+    // }
+    newPostModalRef.current?.showModal();
   };
 
   return (

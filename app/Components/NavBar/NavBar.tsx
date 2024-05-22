@@ -73,8 +73,8 @@ const NavBar = () => {
   
 
   return (
-    <header className="z-[99999]">
-      <div className="navbar fixed top-0 left-0 w-full bg-base-100 dark:bg-slate-400 flex justify-between gap-4 items-center px-4 z-[99999]">
+    <>
+      <header className="navbar fixed top-0 left-0 w-full bg-base-100 dark:bg-slate-400 flex justify-between gap-4 items-center px-4 z-[99999]">
         <Logo ctx="home" />
 
         <div className="hidden xl:flex ml-8 justify-center flex-1 max-w-[700px]">
@@ -179,7 +179,7 @@ const NavBar = () => {
             </svg>
           </label>
         </button>
-      </div>
+      </header>
 
       {/* Hidden Sidebar Menu for Small Screens */}
       <SideBar
@@ -187,7 +187,7 @@ const NavBar = () => {
         setIsSidebarOpen={setIsSidebarOpen}
         closeMenu={closeMenu}
       />
-    </header>
+    </>
   );
 };
 
