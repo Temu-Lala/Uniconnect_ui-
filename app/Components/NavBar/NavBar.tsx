@@ -21,7 +21,7 @@ const NavBar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const router = useRouter();
 
-  const { isAuthenticated } = useAuth()
+  const  isAuthenticated  = true;
 
   const handleLogin = () => {
     router.push("/Login");

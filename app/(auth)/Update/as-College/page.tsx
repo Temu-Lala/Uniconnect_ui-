@@ -1,30 +1,49 @@
 "use client";
-import moment from "moment";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { CollegeFormData, initialCampusFormData, initialCollegeFormData } from "@/app/types/types";
-import {
-  Button,
-  Checkbox,
-  DatePicker,
-  Form,
-  Input,
-  Select,
-  Upload,
-} from "antd";
+import { Button, Checkbox, DatePicker, Form, Input, Select, Upload, message } from "antd";
 import ImgCrop from "antd-img-crop";
 import TextArea from "antd/es/input/TextArea";
 import { RcFile, UploadFile, UploadProps } from "antd/es/upload";
 import Link from "next/link";
+import moment from "moment";
 
 const { Option } = Select;
 
 type FileType = RcFile;
 
+interface CollegeFormData {
+  name: string;
+  email: string;
+  phone: string;
+  bio: string;
+  avatar: FileType | null;
+  background: FileType | null;
+  number_of_lectures: number;
+  number_of_departments: number;
+  establishment_date: string;
+  location: string;
+  university_profile_id: string;
+  campus_profile_id: string;
+}
+
+const initialCollegeFormData: CollegeFormData = {
+  name: "",
+  email: "",
+  phone: "",
+  bio: "",
+  avatar: null,
+  background: null,
+  number_of_lectures: 0,
+  number_of_departments: 0,
+  establishment_date: "",
+  location: "",
+  university_profile_id: "",
+  campus_profile_id: ""
+};
+
 const CampusForm: React.FC = () => {
-  const [formData, setFormData] = useState<CollegeFormData>(
-    initialCollegeFormData
-  );
+  const [formData, setFormData] = useState<CollegeFormData>(initialCollegeFormData);
   const [universities, setUniversities] = useState<any[]>([]);
   const [selectedUniversityId, setSelectedUniversityId] = useState<string>("");
   const [campuses, setCampuses] = useState<any[]>([]);
@@ -36,20 +55,6 @@ const CampusForm: React.FC = () => {
         <Option value="1">+1</Option>
       </Select>
     </Form.Item>
-  );
-  const selectBefore = (
-    <Select defaultValue="http://">
-      <Option value="http://">http://</Option>
-      <Option value="https://">https://</Option>
-    </Select>
-  );
-  const selectAfter = (
-    <Select defaultValue=".com">
-      <Option value=".com">.com</Option>
-      <Option value=".jp">.jp</Option>
-      <Option value=".cn">.cn</Option>
-      <Option value=".org">.org</Option>
-    </Select>
   );
 
   // Fetch universities from API
@@ -72,10 +77,13 @@ const CampusForm: React.FC = () => {
   // Fetch campuses when a university is selected
   useEffect(() => {
     if (selectedUniversityId) {
+      const authToken = localStorage.getItem("token");
       axios
-        .get(
-          `http://127.0.0.1:8000/university-profiles/${selectedUniversityId}/campus-profiles/`
-        )
+        .get(`http://127.0.0.1:8000/university-profiles/${selectedUniversityId}/campus-profiles/`, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        })
         .then((response) => {
           setCampuses(response.data);
         })
@@ -86,9 +94,15 @@ const CampusForm: React.FC = () => {
   }, [selectedUniversityId]);
 
   const handleUniversityChange = (value: string) => {
+    console.log("Selected University ID:", value);
     setSelectedUniversityId(value);
     setFormData({ ...formData, university_profile_id: value });
     setCampuses([]);
+  };
+
+  const handleCampusChange = (value: string) => {
+    console.log("Selected Campus ID:", value);
+    setFormData({ ...formData, campus_profile_id: value });
   };
 
   const onChangeAvatar: UploadProps["onChange"] = ({ fileList }) => {
@@ -136,34 +150,47 @@ const CampusForm: React.FC = () => {
     });
   };
 
+  const handleDateChange = (date: moment.Moment | null) => {
+    setFormData({ ...formData, establishment_date: date ? date.format('YYYY-MM-DD') : "" });
+  };
+
   const handleSubmit = async () => {
+    console.log("Form Data before submit:", formData);
 
-    // try {
-    //   const authToken = localStorage.getItem("token");
-    //   if (authToken) {
-    //     const response = await axios.post(
-    //         `http://127.0.0.1:8000/university-profiles/${selectedUniversityId}/campus-profiles/`,
-    //       formData,
-    //       {
-    //         headers: {
-    //           "Content-Type": "application/json",
-    //           Authorization: `Bearer ${authToken}`,
-    //         },
-    //       }
-    //     );
-    //      message.success('College profile request sent successfully!');
-    //     console.log("College profile request sent successfully:", response.data);
+    const data = new FormData();
+    data.append("university_id", selectedUniversityId);
+    data.append("campus_profile_id", formData.campus_profile_id);
 
-    //     setFormData(initialCollegeFormData);
-    //   }
-    // } catch (error) {
-    //   message.error('Failed to register college profile. Please try again.');
-    //   console.error("Failed to register college profile:", error);
-    // }
+    // Append other fields, excluding university and campus which are already added
+    Object.keys(formData).forEach((key) => {
+      if (formData[key as keyof CollegeFormData] !== null && key !== "university_profile_id" && key !== "campus_profile_id") {
+        data.append(key, formData[key as keyof CollegeFormData] as any);
+      }
+    });
 
+    console.log("FormData to be sent:", Array.from(data.entries()));
 
-    console.log("Submitted college data : ", formData)
-  }; 
+    try {
+      const authToken = localStorage.getItem("token");
+      if (authToken) {
+        const response = await axios.post(
+          "http://127.0.0.1:8000/college_profiles/",
+          data,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
+        message.success("College profile created successfully!");
+        setFormData(initialCollegeFormData);
+      }
+    } catch (error) {
+      message.error("Failed to create college profile. Please try again.");
+      console.error("Error creating college profile:", error.response?.data || error.message);
+    }
+  };
 
   return (
     <section className="w-full bg-white flex flex-col items-center justify-center p-12">
@@ -178,7 +205,7 @@ const CampusForm: React.FC = () => {
           <div className="mb-5 flex flex-col sm:flex-row gap-4">
             <Form.Item
               label="University"
-              name="university_profile_id"
+              name="university"
               rules={[
                 { required: true, message: "Please select a university!" },
               ]}
@@ -197,13 +224,13 @@ const CampusForm: React.FC = () => {
 
             <Form.Item
               label="Campus"
-              name="campus_profile_id"
+              name="campus"
               rules={[{ required: true, message: "Please select campus!" }]}
               className="flex-1"
             >
               <Select
-                value={(formData.campus_profile_id)}
-                onChange={(value) => (setFormData({...formData, 'campus_profile_id': value}))}
+                value={formData.campus_profile_id}
+                onChange={handleCampusChange}
                 className="w-full h-12 rounded-md border border-[#bfbfbf]"
                 disabled={!selectedUniversityId}
                 options={campuses.map((campus) => ({
@@ -230,11 +257,13 @@ const CampusForm: React.FC = () => {
               />
             </Form.Item>
           </div>
+
           <div className="mb-5 flex flex-col gap-4 md:flex-row">
             <Form.Item label="Email" name="email" className="flex-1">
               <Input
                 name="email"
-                value="college@dbu.et"
+                value={formData.email}
+                onChange={handleChange}
                 className="rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
               />
             </Form.Item>
@@ -260,6 +289,7 @@ const CampusForm: React.FC = () => {
               </Form.Item>
             </div>
           </div>
+
           <div className="mb-5">
             <Form.Item
               label="Bio"
@@ -277,6 +307,38 @@ const CampusForm: React.FC = () => {
               />
             </Form.Item>
           </div>
+
+          <div className="mb-5">
+            <Form.Item
+              label="Establishment Date"
+              name="establishment_date"
+              rules={[{ required: true, message: "Please select the establishment date!" }]}
+            >
+              <DatePicker
+                style={{ width: "100%" }}
+                onChange={handleDateChange}
+                value={formData.establishment_date ? moment(formData.establishment_date) : null}
+              />
+            </Form.Item>
+          </div>
+
+          <div className="mb-5">
+            <Form.Item
+              label="Location"
+              name="location"
+              rules={[{ required: true, message: "Please input the location!" }]}
+            >
+              <Input
+                type="text"
+                name="location"
+                placeholder="Location"
+                className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+                value={formData.location}
+                onChange={handleChange}
+              />
+            </Form.Item>
+          </div>
+
           <div className="mb-5 flex ">
             <div className="w-full sm:w-1/2">
               <Form.Item label="Profile picture">
@@ -332,7 +394,6 @@ const CampusForm: React.FC = () => {
               </Form.Item>
             </div>
           </div>
-         
 
           <div className="mb-5 flex gap-4">
             <Form.Item label="Number of departments" className="flex-1">

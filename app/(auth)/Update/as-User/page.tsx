@@ -1,16 +1,8 @@
-"use client"
+"use client";
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { UserFormData, initialUserFormData } from "@/app/types/types";
-import {
-  Button,
-  Checkbox,
-  Form,
-  Input,
-  Select,
-  Upload,
-} from "antd";
+import { Button, Checkbox, Form, Input, Select, Upload } from "antd";
 import ImgCrop from "antd-img-crop";
 import TextArea from "antd/es/input/TextArea";
 import { RcFile, UploadFile, UploadProps } from "antd/es/upload";
@@ -19,6 +11,28 @@ import Link from "next/link";
 const { Option } = Select;
 
 type FileType = RcFile;
+
+export interface UserFormData {
+  first_name: string;
+  last_name: string;
+  gender: string;
+  email: string;
+  phone: string;
+  bio: string;
+  avatar: File | null;
+  cover: File | null;
+}
+
+const initialUserFormData: UserFormData = {
+  first_name: '',
+  last_name: '',
+  gender: '',
+  email: '',
+  phone: '',
+  bio: '',
+  avatar: null,
+  cover: null,
+};
 
 const UserForm: React.FC = () => {
   const [formData, setFormData] = useState<UserFormData>(initialUserFormData);
@@ -79,24 +93,27 @@ const UserForm: React.FC = () => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     try {
-      const authToken = localStorage.getItem('token');
+      const authToken = localStorage.getItem("token");
       if (authToken) {
-        const response = await axios.post('http://127.0.0.1:8000/user_profiles/', formData, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-        });
-        console.log('User profile request sent successfully:', response.data);
+        const response = await axios.post(
+          "http://127.0.0.1:8000/user_profiles/",
+          formData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
+        console.log("User profile request sent successfully:", response.data);
         setFormData(initialUserFormData);
       }
     } catch (error) {
-      console.error('Error creating user profile:', error);
+      console.error("Error creating user profile:", error);
     }
-  }; 
+  };
 
   return (
     <section className="w-full bg-white flex flex-col items-center justify-center p-12">
@@ -150,9 +167,7 @@ const UserForm: React.FC = () => {
             >
               <Select
                 value={formData.gender}
-                onChange={(value) =>
-                  setFormData({ ...formData, gender: value })
-                }
+                onChange={(value) => setFormData({ ...formData, gender: value })}
                 className="w-full h-12 rounded-md border border-[#bfbfbf]"
               >
                 <Option value="male">Male</Option>

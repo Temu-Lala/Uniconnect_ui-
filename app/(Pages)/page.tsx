@@ -4,7 +4,6 @@ import NewsFeed from "./News/page";
 import UniversityList from "./UnivesityList/page";
 import LecturesList from "./LecturesList/page";
 import NavBar from "../Components/NavBar/NavBar";
-import NewPost from "./News/NewPost";
 import { useRouter } from "next/navigation";
 import React from "react";
 import Link from "next/link";
@@ -24,7 +23,6 @@ export default function Home() {
         </aside>
         <main className="flex-1 overflow-y-auto lg:pr-[300px] xl:px-[360px]">
           <div className="max-w-[700px] mx-auto px-4 sm:px-6 md:px-0 xl:px-6 2xl:px-0 ">
-            <NewPost />
             <NewsFeed />
           </div>
         </main>

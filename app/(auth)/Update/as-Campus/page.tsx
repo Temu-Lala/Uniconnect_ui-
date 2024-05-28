@@ -2,7 +2,6 @@
 import moment from "moment";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { CampusFormData, initialCampusFormData } from "@/app/types/types";
 import {
   Button,
   Checkbox,
@@ -11,6 +10,7 @@ import {
   Input,
   Select,
   Upload,
+  message,
 } from "antd";
 import ImgCrop from "antd-img-crop";
 import TextArea from "antd/es/input/TextArea";
@@ -21,56 +21,84 @@ const { Option } = Select;
 
 type FileType = RcFile;
 
+export type CampusFormData = {
+  name: string;
+  email: string;
+  phone: string;
+  bio: string;
+  link: string;
+  avatar: File | null;
+  background: File | null;
+  establishment_date: string;
+  category: string;
+  number_of_lectures: number;
+  number_of_departments: number;
+  number_of_colleges: number;
+  about: string;
+  location: string;
+  university: string; // Updated to match expected field
+  region: string;
+  city: string;
+  pobox: string;
+  specific_place: string;
+};
+
+export const initialCampusFormData: CampusFormData = {
+  name: "",
+  email: "",
+  phone: "",
+  bio: "",
+  link: "",
+  avatar: null,
+  background: null,
+  establishment_date: "",
+  category: "",
+  number_of_lectures: 0,
+  number_of_departments: 0,
+  number_of_colleges: 0,
+  about: "",
+  location: "",
+  university: "", // Updated to match expected field
+  region: "",
+  city: "",
+  pobox: "",
+  specific_place: "",
+};
+
 const CampusForm: React.FC = () => {
   const [formData, setFormData] = useState<CampusFormData>(
     initialCampusFormData
   );
   const [universities, setUniversities] = useState<any[]>([]);
+  const [user, setUser] = useState<string>("");
+  const [group, setGroup] = useState<number>(2);
 
   const dateFormat = "YYYY-MM-DD";
-  // Ensure formData.establishment_date is formatted correctly before setting it
   const establishmentDate = formData.establishment_date
     ? moment(formData.establishment_date, dateFormat)
     : null;
 
-  const prefixSelector = (
-    <Form.Item name="prefix" noStyle initialValue="251">
-      <Select style={{ width: 70 }}>
-        <Option value="251">+251</Option>
-        <Option value="1">+1</Option>
-      </Select>
-    </Form.Item>
-  );
-  const selectBefore = (
-    <Select defaultValue="http://">
-      <Option value="http://">http://</Option>
-      <Option value="https://">https://</Option>
-    </Select>
-  );
-  const selectAfter = (
-    <Select defaultValue=".com">
-      <Option value=".com">.com</Option>
-      <Option value=".jp">.jp</Option>
-      <Option value=".cn">.cn</Option>
-      <Option value=".org">.org</Option>
-    </Select>
-  );
-
-  // Fetch universities from API
   useEffect(() => {
-    const authToken = localStorage.getItem('token')
-    axios
-      .get("http://127.0.0.1:8000/university-profiles/", {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
-      })
-      .then((response) => {
-        setUniversities(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching universities:", error);
-      });
+    const authToken = localStorage.getItem("token");
+    if (authToken) {
+      axios
+        .get("http://127.0.0.1:8000/university-profiles/", {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        })
+        .then((response) => {
+          setUniversities(response.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching universities:", error);
+        });
+
+      // Decode user ID from token without using jwtDecode
+      const tokenParts = authToken.split('.')[1];
+      const decoded = JSON.parse(atob(tokenParts));
+      setUser(decoded.user_id);
+    }
   }, []);
 
   const onChangeAvatar: UploadProps["onChange"] = ({ fileList }) => {
@@ -120,29 +148,55 @@ const CampusForm: React.FC = () => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    // e.preventDefault();
-    // try {
-    //   const authToken = localStorage.getItem('token');
-    //   if (authToken) {
-    //     const response = await axios.post('http://127.0.0.1:8000/campus_profiles/', formData, {
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         'Authorization': `Bearer ${authToken}`
-    //       },
-    //     });
-    //     message.success('Campus profile request sent successfully!');
-    //     console.log('Campus profile request sent successfully:', response.data);
-        
-    //     setFormData(initialCampusFormData);
-    //   }
-    // } catch (error) {
-    //    message.error('Failed to register campus profile. Please try again.');
-    //   console.error('Error creating campus profile:', error);
-    // }
-
-    console.log("Submitted campus data : ", formData)
+  const handleSelectChange = (value: string, field: string) => {
+    setFormData({
+      ...formData,
+      [field]: value,
+    });
   };
+
+  const handleSubmit = async () => {
+    const data = new FormData();
+    Object.keys(formData).forEach((key) => {
+      if (formData[key as keyof CampusFormData] !== null) {
+        data.append(key, formData[key as keyof CampusFormData] as any); // Type assertion to any
+      }
+    });
+
+    data.append("user", user);
+    data.append("group", group.toString());
+
+    try {
+      const authToken = localStorage.getItem("token");
+      if (authToken) {
+        const response = await axios.post(
+          "http://127.0.0.1:8000/campus-profiles/",
+          data,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
+        message.success("Campus profile created successfully!");
+        console.log("Campus profile created:", response.data);
+        setFormData(initialCampusFormData);
+      }
+    } catch (error) {
+      message.error("Failed to create campus profile. Please try again.");
+      console.error("Error creating campus profile:", error);
+    }
+  };
+
+  const prefixSelector = (
+    <Form.Item name="prefix" noStyle initialValue="251">
+      <Select style={{ width: 70 }}>
+        <Option value="251">+251</Option>
+        <Option value="1">+1</Option>
+      </Select>
+    </Form.Item>
+  );
 
   return (
     <section className="w-full bg-white flex flex-col items-center justify-center p-12">
@@ -157,15 +211,15 @@ const CampusForm: React.FC = () => {
           <div className="mb-5">
             <Form.Item
               label="University"
-              name="university_id"
+              name="university"
               rules={[
                 { required: true, message: "Please select a university!" },
               ]}
             >
               <Select
-                value={formData.university_profile_id}
+                value={formData.university}
                 onChange={(value) =>
-                  setFormData({ ...formData, university_profile_id: value })
+                  setFormData({ ...formData, university: value })
                 }
                 className="w-full h-12 rounded-md border border-[#bfbfbf]"
                 options={universities.map((university) => ({
@@ -196,7 +250,8 @@ const CampusForm: React.FC = () => {
             <Form.Item label="Email" name="email" className="flex-1">
               <Input
                 name="email"
-                value="campus@gmail.com"
+                value={formData.email}
+                onChange={handleChange}
                 className="rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
               />
             </Form.Item>
@@ -245,7 +300,7 @@ const CampusForm: React.FC = () => {
               <Form.Item label="Profile picture">
                 <ImgCrop rotationSlider>
                   <Upload
-                  className="w-fit border border-dotted border-[#bfbfbf] rounded-lg"
+                    className="w-fit border border-dotted border-[#bfbfbf] rounded-lg"
                     listType="picture-card"
                     fileList={
                       formData.avatar
@@ -272,7 +327,7 @@ const CampusForm: React.FC = () => {
               <Form.Item label="Cover photo">
                 <ImgCrop aspect={16 / 9} rotationSlider>
                   <Upload
-                  className="w-fit border border-dotted border-[#bfbfbf] rounded-lg"
+                    className="w-fit border border-dotted border-[#bfbfbf] rounded-lg"
                     listType="picture-card"
                     fileList={
                       formData.background
@@ -302,8 +357,6 @@ const CampusForm: React.FC = () => {
                 name="link"
                 style={{ height: "100%" }}
                 className="w-full !h-full text-[#6B7280] rounded-md border border-[#bfbfbf] outline-none focus:border-blue-600 focus:shadow-md"
-                addonBefore={selectBefore}
-                addonAfter={selectAfter}
                 placeholder="Please enter url"
                 value={formData.link}
                 onChange={handleChange}
@@ -313,7 +366,6 @@ const CampusForm: React.FC = () => {
           <div className="mb-5 flex flex-col sm:flex-row gap-4">
             <Form.Item label="Category" className="flex-1">
               <Select
-                // name="category"
                 placeholder="Category"
                 className="w-full h-12 rounded-md border border-[#bfbfbf]"
                 value={formData.category}
@@ -321,8 +373,11 @@ const CampusForm: React.FC = () => {
                   setFormData({ ...formData, category: value })
                 }
                 options={[
-                  { value: "health", label: "Health" },
-                  { value: "engeneering", label: "Engeneering" },
+                  { value: "Applied", label: "Applied" },
+                  { value: "Engineering", label: "Engineering" },
+                  { value: "Comprehensive", label: "Comprehensive" },
+                  { value: "Research", label: "Research" },
+                  { value: "Science and Technology", label: "Science and Technology" },
                 ]}
               />
             </Form.Item>
@@ -336,7 +391,7 @@ const CampusForm: React.FC = () => {
                 value={establishmentDate}
                 format={dateFormat}
                 onChange={(date, dateString) => {
-                  setFormData({ ...formData, "establishment_date": dateString.toString() });
+                  setFormData({ ...formData, establishment_date: dateString.toString() });
                 }}
               />
             </Form.Item>
@@ -348,7 +403,7 @@ const CampusForm: React.FC = () => {
                 type="number"
                 name="number_of_colleges"
                 id="number_of_colleges"
-                placeholder="Number of college"
+                placeholder="Number of colleges"
                 className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
                 value={formData.number_of_colleges}
                 onChange={handleChange}
@@ -395,12 +450,88 @@ const CampusForm: React.FC = () => {
             </Form.Item>
           </div>
 
-          <Form.Item label="Location">
-            {/* location input from map goes here */}
-            <div className="mb-5 w-full h-[300px] rounded-md border border-[#bfbfbf]">
-              {/* <MapInput location={formData.location} setLocation={setLocation} /> */}
-            </div>
-          </Form.Item>
+          <div className="mb-5">
+            <Form.Item label="Region">
+              <Select
+                placeholder="Select a region"
+                className="w-full h-12 rounded-md border border-[#bfbfbf]"
+                value={formData.region}
+                onChange={(value) =>
+                  handleSelectChange(value, "region")
+                }
+                options={[
+                  { value: "Addis Abeba", label: "Addis Abeba" },
+                  { value: "Dire Dawa", label: "Dire Dawa" },
+                  { value: "Oromia", label: "Oromia" },
+                  { value: "Amhara", label: "Amhara" },
+                  { value: "Tigray", label: "Tigray" },
+                  { value: "Afar", label: "Afar" },
+                  { value: "Somali", label: "Somali" },
+                  { value: "Benishangul-Gumuz", label: "Benishangul-Gumuz" },
+                  { value: "SNNPR", label: "SNNPR" },
+                  { value: "Harari", label: "Harari" },
+                  { value: "Gambella", label: "Gambella" },
+                ]}
+              />
+            </Form.Item>
+          </div>
+
+          <div className="mb-5">
+            <Form.Item label="City">
+              <Select
+                placeholder="Select a city"
+                className="w-full h-12 rounded-md border border-[#bfbfbf]"
+                value={formData.city}
+                onChange={(value) =>
+                  handleSelectChange(value, "city")
+                }
+                options={[
+                  { value: "city1", label: "City 1" },
+                  { value: "city2", label: "City 2" },
+                  { value: "city3", label: "City 3" },
+                ]}
+              />
+            </Form.Item>
+          </div>
+
+          <div className="mb-5">
+            <Form.Item label="PO Box">
+              <Input
+                type="text"
+                name="pobox"
+                placeholder="PO Box"
+                value={formData.pobox}
+                onChange={handleChange}
+                className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+              />
+            </Form.Item>
+          </div>
+
+          <div className="mb-5">
+            <Form.Item label="Specific Place">
+              <Input
+                type="text"
+                name="specific_place"
+                placeholder="Specific Place"
+                value={formData.specific_place}
+                onChange={handleChange}
+                className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+              />
+            </Form.Item>
+          </div>
+
+          <div className="mb-5">
+            <Form.Item label="Location">
+              <Input
+                type="text"
+                name="location"
+                placeholder="Location"
+                value={formData.location}
+                onChange={handleChange}
+                className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
+              />
+            </Form.Item>
+          </div>
 
           <div className="mb-5 h-5">
             <Checkbox>

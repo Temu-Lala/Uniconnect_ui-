@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import {
   Button,
   Checkbox,
@@ -10,30 +9,75 @@ import {
   Form,
   Input,
   Radio,
-  Select,
   RadioChangeEvent,
+  Select,
+  Upload,
 } from "antd";
-const { TextArea } = Input;
-import MapInput from "./MapInput";
-import AgreementDownload from "./AgreementDownload";
+import ImgCrop from "antd-img-crop";
+import { UploadFile, UploadProps, RcFile } from "antd/lib/upload/interface";
+import moment from "moment";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import AgreementDownload from "./AgreementDownload"; // Ensure this component is defined and imported correctly
 import Link from "next/link";
 
-import { Upload } from "antd";
-import ImgCrop from "antd-img-crop";
-import type {
-  UploadFile,
-  UploadProps,
-  RcFile,
-} from "antd/lib/upload/interface";
-
-import {
-  UniversityFormData,
-  initialUniversityFormData,
-} from "@/app/types/types";
-import moment from "moment";
+const { TextArea } = Input;
 const { Option } = Select;
 
 type FileType = RcFile;
+
+type UniversityFormData = {
+  name: string;
+  phone: string;
+  bio: string;
+  profile_photo: File | null;
+  cover_photo: File | null;
+  link: string;
+  category: string;
+  establishment_date: string;
+  number_of_lectures: number;
+  number_of_departments: number;
+  number_of_campuses: number;
+  number_of_colleges: number;
+  number_of_libraries: number;
+  number_of_laboratories: number;
+  about: string;
+  health_condition_support: string;
+  region: string;
+  city: string;
+  pobox: string;
+  specific_place: string;
+  location: { lat: number; lng: number };
+  group: number;
+  status: string;
+  user: string;
+};
+
+const initialUniversityFormData: UniversityFormData = {
+  name: "",
+  phone: "",
+  bio: "",
+  profile_photo: null,
+  cover_photo: null,
+  link: "",
+  category: "",
+  establishment_date: "",
+  number_of_lectures: 0,
+  number_of_departments: 0,
+  number_of_campuses: 0,
+  number_of_colleges: 0,
+  number_of_libraries: 0,
+  number_of_laboratories: 0,
+  about: "",
+  health_condition_support: "",
+  region: "",
+  city: "",
+  pobox: "",
+  specific_place: "",
+  location: { lat: 0, lng: 0 },
+  group: 1,
+  status: "",
+  user: "",
+};
 
 const NewUniversityProfileForm = () => {
   const [formData, setFormData] = useState<UniversityFormData>(
@@ -41,7 +85,6 @@ const NewUniversityProfileForm = () => {
   );
 
   const dateFormat = "YYYY-MM-DD";
-  // Ensure formData.establishment_date is formatted correctly before setting it
   const establishmentDate = formData.establishment_date
     ? moment(formData.establishment_date, dateFormat)
     : null;
@@ -61,6 +104,7 @@ const NewUniversityProfileForm = () => {
       <Option value="https://">https://</Option>
     </Select>
   );
+
   const selectAfter = (
     <Select defaultValue=".com">
       <Option value=".com">.com</Option>
@@ -75,7 +119,7 @@ const NewUniversityProfileForm = () => {
       const file: FileType = fileList[0].originFileObj as FileType;
       setFormData({
         ...formData,
-        avatar: file,
+        profile_photo: file,
       });
     }
   };
@@ -85,7 +129,7 @@ const NewUniversityProfileForm = () => {
       const file: FileType = fileList[0].originFileObj as FileType;
       setFormData({
         ...formData,
-        background: file,
+        cover_photo: file,
       });
     }
   };
@@ -106,23 +150,22 @@ const NewUniversityProfileForm = () => {
   };
 
   useEffect(() => {
-    // Fetch user ID from the server using the token
     const fetchUserId = async () => {
       try {
-        const authToken = localStorage.getItem("token"); // Assuming you store the token in localStorage upon login
+        const authToken = localStorage.getItem("token");
         if (authToken) {
           const response = await axios.get(
             "http://127.0.0.1:8000/user-profile/",
             {
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${authToken}`, // Include the token in the Authorization header
+                Authorization: `Bearer ${authToken}`,
               },
             }
           );
           setFormData((prevFormData) => ({
             ...prevFormData,
-            user_id: response.data.id,
+            user: response.data.id,
           }));
         }
       } catch (error) {
@@ -131,7 +174,7 @@ const NewUniversityProfileForm = () => {
     };
 
     fetchUserId();
-  }, []); // Run only once on component mount
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -145,55 +188,56 @@ const NewUniversityProfileForm = () => {
     });
   };
 
+  const handleSelectChange = (value: string, field: string) => {
+    setFormData({
+      ...formData,
+      [field]: value,
+    });
+  };
+
   const handleRadioChange = (e: RadioChangeEvent) => {
     const { value } = e.target;
     setFormData({
       ...formData,
-      support_disabled: value,
+      health_condition_support: value,
     });
   };
 
-  const setLocation = (newLocation: { lat: number; lng: number }) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      location: newLocation,
-    }));
-  };
+  const handleSubmit = async () => {
+    const data = new FormData();
+    Object.keys(formData).forEach((key) => {
+      if (formData[key as keyof UniversityFormData] !== null) {
+        data.append(key, formData[key as keyof UniversityFormData] as any); // Type assertion to any
+      }
+    });
 
-  const handleSubmit = async (values: any) => {
     try {
-      const authToken = localStorage.getItem("token"); // Assuming you store the token in localStorage upon login
+      const authToken = localStorage.getItem("token");
       if (authToken) {
         const response = await axios.post(
           "http://127.0.0.1:8000/university_profiles/",
-          values,
+          data,
           {
             headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${authToken}`, // Include the token in the Authorization header
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${authToken}`,
             },
           }
         );
         console.log("University profile created:", response.data);
-        // Reset form fields after successful submission
         setFormData(initialUniversityFormData);
       }
     } catch (error) {
       console.error("Error creating university profile:", error);
     }
-
-    console.log("uv data :- ", formData);
   };
 
- 
   return (
     <section className="w-full bg-white flex flex-col items-center justify-center p-12">
       <div className="mx-auto w-full md:w-8/12 bg-white p-8 flex justify-center border shadow-lg">
         <Form
-        name="univesity_form"
           className="w-full sm:w-11/12"
           layout="vertical"
-          initialValues={{ remember: true }}
           onFinish={handleSubmit}
         >
           <div className="my-5">
@@ -252,6 +296,7 @@ const NewUniversityProfileForm = () => {
               </Form.Item>
             </div>
           </div>
+
           <div className="mb-5">
             <Form.Item
               label="Bio"
@@ -271,7 +316,8 @@ const NewUniversityProfileForm = () => {
               />
             </Form.Item>
           </div>
-          <div className="mb-5 flex ">
+
+          <div className="mb-5 flex">
             <div className="w-full sm:w-1/2">
               <Form.Item label="Profile picture">
                 <ImgCrop rotationSlider>
@@ -279,12 +325,12 @@ const NewUniversityProfileForm = () => {
                     className="w-fit border border-dotted border-[#bfbfbf] rounded-lg"
                     listType="picture-card"
                     fileList={
-                      formData.avatar
+                      formData.profile_photo
                         ? [
                             {
                               uid: "1",
-                              name: formData.avatar.name,
-                              url: URL.createObjectURL(formData.avatar),
+                              name: formData.profile_photo.name,
+                              url: URL.createObjectURL(formData.profile_photo),
                             },
                           ]
                         : []
@@ -293,7 +339,7 @@ const NewUniversityProfileForm = () => {
                     onPreview={onPreview}
                     maxCount={1}
                   >
-                    {formData.avatar ? null : "+ Upload Avatar"}
+                    {formData.profile_photo ? null : "+ Upload Avatar"}
                   </Upload>
                 </ImgCrop>
               </Form.Item>
@@ -306,12 +352,12 @@ const NewUniversityProfileForm = () => {
                     className="w-fit border border-dotted border-[#bfbfbf] rounded-lg"
                     listType="picture-card"
                     fileList={
-                      formData.background
+                      formData.cover_photo
                         ? [
                             {
                               uid: "1",
-                              name: formData.background.name,
-                              url: URL.createObjectURL(formData.background),
+                              name: formData.cover_photo.name,
+                              url: URL.createObjectURL(formData.cover_photo),
                             },
                           ]
                         : []
@@ -320,12 +366,13 @@ const NewUniversityProfileForm = () => {
                     onPreview={onPreview}
                     maxCount={1}
                   >
-                    {formData.background ? null : "+ Upload Background"}
+                    {formData.cover_photo ? null : "+ Upload Background"}
                   </Upload>
                 </ImgCrop>
               </Form.Item>
             </div>
           </div>
+
           <div className="mb-5 url">
             <Form.Item label="Website URL">
               <Input
@@ -345,16 +392,16 @@ const NewUniversityProfileForm = () => {
           <div className="mb-5 flex flex-col sm:flex-row gap-4">
             <Form.Item label="Category" className="flex-1">
               <Select
-                // name="category"
                 placeholder="Category"
                 className="w-full h-12 rounded-md border border-[#bfbfbf]"
                 value={formData.category}
-                onChange={(value) =>
-                  setFormData({ ...formData, category: value })
-                }
+                onChange={(value) => handleSelectChange(value, "category")}
                 options={[
-                  { value: "applied", label: "Applied" },
-                  { value: "engeneering", label: "Engeneering" },
+                  { value: "Applied", label: "Applied" },
+                  { value: "Engineering", label: "Engineering" },
+                  { value: "Comprehensive", label: "Comprehensive" },
+                  { value: "Research", label: "Research" },
+                  { value: "Science and Technology", label: "Science and Technology" },
                 ]}
               />
             </Form.Item>
@@ -378,12 +425,12 @@ const NewUniversityProfileForm = () => {
           </div>
 
           <div className="mb-5 flex flex-col sm:flex-row gap-4">
-            <Form.Item label="Number of campus" className="flex-1">
+            <Form.Item label="Number of campuses" className="flex-1">
               <Input
                 type="number"
                 name="number_of_campuses"
                 id="number_of_campuses"
-                placeholder="Number of campus"
+                placeholder="Number of campuses"
                 className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
                 value={formData.number_of_campuses}
                 onChange={handleChange}
@@ -395,7 +442,7 @@ const NewUniversityProfileForm = () => {
                 type="number"
                 name="number_of_colleges"
                 id="number_of_colleges"
-                placeholder="Number of college"
+                placeholder="Number of colleges"
                 className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
                 value={formData.number_of_colleges}
                 onChange={handleChange}
@@ -428,16 +475,16 @@ const NewUniversityProfileForm = () => {
           </div>
 
           <div className="mb-5">
-            <Form.Item label="Do the university support disabled students?">
+            <Form.Item label="Does the university support disabled students?">
               <Radio.Group
                 onChange={handleRadioChange}
-                name="disabled"
-                value={formData.support_disabled}
+                name="health_condition_support"
+                value={formData.health_condition_support}
               >
-                <Radio value={1}>
+                <Radio value="yes">
                   Yes we support and have the facility/courses
                 </Radio>
-                <Radio value={2}>No we don't support </Radio>
+                <Radio value="no">No we don't support</Radio>
               </Radio.Group>
             </Form.Item>
           </div>
@@ -465,13 +512,10 @@ const NewUniversityProfileForm = () => {
               <div className="w-full px-3 sm:w-1/2">
                 <div className="mb-5">
                   <Select
-                    // name="region"
                     value={formData.region}
                     placeholder="Select a region"
-                    className="w-full h-12 rounded-md border text-gray-800 border-[#bfbfbf]"
-                    onChange={(value) =>
-                      setFormData({ ...formData, region: value })
-                    }
+                    className="w-full h-12 rounded-md border border-[#bfbfbf]"
+                    onChange={(value) => handleSelectChange(value, "region")}
                     options={[
                       { value: "Addis Abeba", label: "Addis Abeba" },
                       { value: "Dire Dawa", label: "Dire Dawa" },
@@ -480,10 +524,7 @@ const NewUniversityProfileForm = () => {
                       { value: "Tigray", label: "Tigray" },
                       { value: "Afar", label: "Afar" },
                       { value: "Somali", label: "Somali" },
-                      {
-                        value: "Benishangul-Gumuz",
-                        label: "Benishangul-Gumuz",
-                      },
+                      { value: "Benishangul-Gumuz", label: "Benishangul-Gumuz" },
                       { value: "SNNPR", label: "SNNPR" },
                       { value: "Harari", label: "Harari" },
                       { value: "Gambella", label: "Gambella" },
@@ -519,13 +560,16 @@ const NewUniversityProfileForm = () => {
                   />
                 </div>
               </div>
+
               <div className="w-full px-3 sm:w-1/2">
                 <div className="mb-5">
                   <Input
                     type="text"
-                    name="spe"
-                    id="post-code"
-                    placeholder="Liyu bota"
+                    name="specific_place"
+                    id="specific_place"
+                    placeholder="Specific Place"
+                    value={formData.specific_place}
+                    onChange={handleChange}
                     className="w-full rounded-md border border-[#bfbfbf] bg-white py-3 px-6 text-base font-medium text-[#6B7280] outline-none focus:border-blue-600 focus:shadow-md"
                   />
                 </div>
@@ -534,9 +578,9 @@ const NewUniversityProfileForm = () => {
           </div>
 
           {/* location input from map goes here */}
-          <div className="mb-5 w-full h-[300px] rounded-md border border-[#bfbfbf]">
-            {/* <MapInput location={formData.location} setLocation={setLocation} /> */}
-          </div>
+          {/* <div className="mb-5 w-full h-[300px] rounded-md border border-[#bfbfbf]">
+            <MapInput location={formData.location} setLocation={(location) => setFormData({ ...formData, location })} />
+          </div> */}
 
           <Form.Item label="Download this agreement pdf and fill out.">
             <AgreementDownload />

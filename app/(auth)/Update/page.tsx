@@ -1,6 +1,4 @@
 "use client";
-// Ensure that the backend endpoint 'http://127.0.0.1:8000/store-user-into-group/' is correctly configured to handle user registration into groups.
-
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -48,7 +46,7 @@ const Register = () => {
   return (
     <div className="bg-white h-screen mt-[67px] p-4">
       <h2>Transform Your account to the next level.</h2>
-      {/* <div className="w-full max-w-xl">
+      <div className="w-full max-w-xl">
         <div className="form-control w-full max-w-xs">
           <select
             value={selectedOption}
@@ -70,7 +68,7 @@ const Register = () => {
         {selectedOption && (
           <button className="btn btn-primary mt-4" onClick={handleGoButtonClick}>Go</button>
         )}
-      </div> */}
+      </div>
     </div>
   );
 };
