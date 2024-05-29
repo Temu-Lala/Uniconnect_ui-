@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, ChangeEvent, useRef } from 'react';
+import React, { useState, useEffect, ChangeEvent, useRef, MouseEvent as ReactMouseEvent } from 'react';
 import { FaThumbsUp, FaShare, FaEdit, FaCopy, FaDownload, FaComments, FaExpand, FaSearchPlus, FaEllipsisV, FaTrash } from 'react-icons/fa';
 import { LiaTimesSolid } from "react-icons/lia";
 import Image from 'next/image';
@@ -86,12 +86,12 @@ const NewsFeed = () => {
       const data = await Promise.all(responses.map(resp => resp.json()));
 
       const formattedData = data.flatMap((items, index) =>
-        items.map(item => formatPostItem(item, ['college', 'campus', 'university', 'department', 'lecturer'][index]))
+        items.map((item: any) => formatPostItem(item, ['college', 'campus', 'university', 'department', 'lecturer'][index]))
       );
 
       setNewsItems(formattedData);
     } catch (error) {
-      console.error('Error fetching news feed:', error.message);
+      console.error('Error fetching news feed:', (error as Error).message);
       setError('Failed to fetch news feed. Please try again later.');
     }
   };
@@ -145,7 +145,7 @@ const NewsFeed = () => {
           }
         }, 100);
       } catch (error) {
-        console.error('Error fetching comments:', error.message);
+        console.error('Error fetching comments:', (error as Error).message);
         setError('Failed to fetch comments. Please try again later.');
       }
     }
@@ -193,7 +193,7 @@ const NewsFeed = () => {
         }
       }, 100);
     } catch (error) {
-      console.error('Error adding comment:', error.message);
+      console.error('Error adding comment:', (error as Error).message);
       setError('Failed to add comment. Please try again later.');
     }
   };
@@ -224,7 +224,7 @@ const NewsFeed = () => {
       setEditedCommentText('');
       fetchNewsFeed();
     } catch (error) {
-      console.error('Error saving edited comment:', error.message);
+      console.error('Error saving edited comment:', (error as Error).message);
       setError('Failed to save edited comment. Please try again later.');
     }
   };
@@ -245,7 +245,7 @@ const NewsFeed = () => {
 
       toggleComments(postId, type);
     } catch (error) {
-      console.error('Error deleting comment:', error.message);
+      console.error('Error deleting comment:', (error as Error).message);
       setError('Failed to delete comment. Please try again later.');
     }
   };
@@ -286,7 +286,7 @@ const NewsFeed = () => {
 
       setNewsItems(updatedNewsItems);
     } catch (error) {
-      console.error('Error liking post:', error.message);
+      console.error('Error liking post:', (error as Error).message);
       setError('Failed to like post. Please try again later.');
     }
   };
@@ -318,7 +318,7 @@ const NewsFeed = () => {
 
       fetchNewsFeed();
     } catch (error) {
-      console.error('Error disliking post:', error.message);
+      console.error('Error disliking post:', (error as Error).message);
       setError('Failed to dislike post. Please try again later.');
     }
   };
@@ -351,7 +351,7 @@ const NewsFeed = () => {
       setShareLink(data.shareLink);
       setShowShareModal(true);
     } catch (error) {
-      console.error('Error sharing post:', error.message);
+      console.error('Error sharing post:', (error as Error).message);
       setError('Failed to share post. Please try again later.');
     }
   };
@@ -361,7 +361,7 @@ const NewsFeed = () => {
       await navigator.clipboard.writeText(shareLink);
       alert('Link copied to clipboard');
     } catch (error) {
-      console.error('Error copying link:', error.message);
+      console.error('Error copying link:', (error as Error).message);
       setError('Failed to copy link. Please try again later.');
     }
   };
@@ -386,7 +386,7 @@ const NewsFeed = () => {
     setSelectedFile(null);
   };
 
-  const handleOutsideClick = (event: React.MouseEvent) => {
+  const handleOutsideClick = (event: ReactMouseEvent) => {
     if ((event.target as HTMLElement).classList.contains('modal')) {
       setShowCommentsModal({});
     }
@@ -413,7 +413,7 @@ const NewsFeed = () => {
   return (
     <div className="container mx-auto p-4">
       {error && <div className="alert alert-error shadow-lg mb-4">{error}</div>}
-      {newsItems.map(item => (
+      {newsItems.map((item: NewsItem) => (
         <div className="card w-full bg-base-100 shadow-xl mb-4" key={item.id}>
           <div className="card-body">
             <div className="flex items-center mb-4">
@@ -551,7 +551,7 @@ const NewsFeed = () => {
         </div>
       )}
       {Object.keys(showCommentsModal).map(postId => (
-        showCommentsModal[postId] && (
+        showCommentsModal[Number(postId)] && (
           <div className="modal modal-open" key={postId} onClick={handleOutsideClick}>
             <div className="modal-box w-11/12 max-w-5xl relative bg-gray-800 text-white" onClick={(e) => e.stopPropagation()}>
               <button className="btn btn-sm btn-circle absolute right-2 top-2 text-white" onClick={() => toggleComments(Number(postId), newsItems.find(item => item.id === Number(postId))!.type)}>

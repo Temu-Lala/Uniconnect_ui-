@@ -1,587 +1,388 @@
-'use client';
-import React, { useState, useEffect, ChangeEvent, useRef } from 'react';
+"use client"
+import { useState, useEffect, useRef, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
+import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { FaThumbsUp, FaShare, FaEdit, FaCopy, FaDownload, FaComments, FaExpand, FaSearchPlus, FaEllipsisV, FaTrash } from 'react-icons/fa';
-import { LiaTimesSolid } from "react-icons/lia";
-import Image from 'next/image';
-import 'tailwindcss/tailwind.css';
+import { FaUniversity, FaMapMarkerAlt, FaRegCalendarAlt, FaUserFriends, FaChalkboardTeacher, FaBuilding, FaBook } from 'react-icons/fa';
 
-interface Comment {
-  id: number;
-  body: string;
-  author: { Username: string; Avatar: string };
-  created_on: string;
+interface Params {
+  id: string;
 }
 
-interface NewsItem {
-  id: number;
-  ownerName: string;
-  owner: string;
-  title: string;
-  content: string;
+interface Profile {
+  cover_photo: string;
+  profile_photo: string;
+  name: string;
+  bio: string;
+  number_of_lectures: number;
+  number_of_departments: number;
+  number_of_campuses: number;
+  number_of_colleges: number;
   link: string;
-  created_at: string;
-  date: string;
-  imageUrls: string[];
-  fileUrl: string;
-  likes: number;
-  dislikes: number;
-  shares: number;
-  type: string;
-  showAllComments: boolean;
-  liked: boolean;
-  disliked: boolean;
-  comments: Comment[];
+  establishment_date: string;
+  region: string;
+  city: string;
+  pobox: string;
+  specific_place: string;
+  campus?: string;
+  university?: string;
+  about?: string;
+  location: string;
 }
 
-const CollegeNewsFeed = ({ params }) => {
+interface RatingAndComment {
+  value: number;
+  comment: string;
+}
+
+const CollegeProfileDetailPage = ({ params }: { params: Params }) => {
   const router = useRouter();
   const { id } = params;
-  
-  const [comments, setComments] = useState<{ [postId: number]: string }>({});
-  const [newsItem, setNewsItem] = useState<NewsItem | null>(null);
+
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
-  const [editedCommentText, setEditedCommentText] = useState<string>('');
-  const [shareLink, setShareLink] = useState<string>('');
-  const [showShareModal, setShowShareModal] = useState<boolean>(false);
-  const [showCommentsModal, setShowCommentsModal] = useState<boolean>(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [expandedPost, setExpandedPost] = useState<boolean>(false);
-  const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
-  const commentsEndRef = useRef<HTMLDivElement>(null);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [ratingsAndComments, setRatingsAndComments] = useState<RatingAndComment[]>([]);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [seeMore, setSeeMore] = useState(false);
+  const [showAllComments, setShowAllComments] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
+  const [campusName, setCampusName] = useState('');
+  const [universityName, setUniversityName] = useState('');
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (id) {
-      fetchCollegePost(id);
+      fetchProfile(id);
+      fetchRatingsAndComments(id);
+      checkFollowingStatus(id);
+      fetchFollowersCount(id);
     }
   }, [id]);
 
-  const fetchCollegePost = async (postId) => {
+  const fetchProfile = async (id: string) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/college-posts/${postId}/`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch college post');
-      }
-      const data = await response.json();
-      setNewsItem(formatPostItem(data));
-    } catch (error) {
-      setError('Failed to fetch college post. Please try again later.');
-    }
-  };
-
-  const formatPostItem = (item): NewsItem => ({
-    id: item.id,
-    ownerName: item.college_name || 'Unknown',
-    owner: item.user,
-    title: item.title,
-    content: item.content,
-    link: item.link,
-    created_at: item.created_at,
-    date: new Date(item.created_at).toLocaleDateString(),
-    imageUrls: [item.file],
-    fileUrl: item.file,
-    likes: item.likes,
-    dislikes: item.dislikes,
-    shares: item.shares,
-    type: 'college',
-    showAllComments: false,
-    liked: false,
-    disliked: false,
-    comments: []
-  });
-
-  const toggleComments = async (postId: number) => {
-    if (!newsItem) return;
-
-    const updatedNewsItem = { ...newsItem };
-
-    if (updatedNewsItem.showAllComments) {
-      updatedNewsItem.showAllComments = false;
-      setShowCommentsModal(false);
-      setNewsItem(updatedNewsItem);
-    } else {
-      try {
-        const response = await fetch(`http://127.0.0.1:8000/comments/college/${postId}/`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch comments');
-        }
-        const data = await response.json();
-        updatedNewsItem.comments = data.comments;
-        updatedNewsItem.showAllComments = true;
-        setShowCommentsModal(true);
-        setNewsItem(updatedNewsItem);
-        setTimeout(() => {
-          if (commentsEndRef.current) {
-            commentsEndRef.current.scrollIntoView({ behavior: 'smooth' });
-          }
-        }, 100);
-      } catch (error) {
-        setError('Failed to fetch comments. Please try again later.');
-      }
-    }
-  };
-
-  const handleCommentChange = (e: ChangeEvent<HTMLTextAreaElement>, postId: number) => {
-    setComments({ ...comments, [postId]: e.target.value });
-  };
-
-  const handleAddComment = async (postId: number) => {
-    if (!comments[postId]?.trim()) {
-      alert('Comment cannot be empty.');
-      return;
-    }
-
-    try {
-      const response = await fetch('http://127.0.0.1:8000/add-comment/', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          postId,
-          postType: 'college',
-          commentText: comments[postId]
-        })
-      });
-
-      if (response.status === 401) {
-        alert('You must be logged in to add a comment.');
-        window.location.href = '/Login/';
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error('Failed to add comment');
-      }
-
-      setComments({ ...comments, [postId]: '' });
-      toggleComments(postId);
-      setTimeout(() => {
-        if (commentsEndRef.current) {
-          commentsEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
-    } catch (error) {
-      setError('Failed to add comment. Please try again later.');
-    }
-  };
-
-  const handleEditComment = (commentId: number, text: string) => {
-    setEditingCommentId(commentId);
-    setEditedCommentText(text);
-  };
-
-  const handleSaveEditedComment = async (commentId: number) => {
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/comments/${commentId}/edit/`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ 
-          commentText: editedCommentText
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to edit comment');
-      }
-
-      setEditingCommentId(null);
-      setEditedCommentText('');
-      fetchCollegePost(id);
-    } catch (error) {
-      setError('Failed to save edited comment. Please try again later.');
-    }
-  };
-
-  const handleDeleteComment = async (commentId: number, postId: number) => {
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/comments/${commentId}/delete/`, {
-        method: 'DELETE',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete comment');
-      }
-
-      toggleComments(postId);
-    } catch (error) {
-      setError('Failed to delete comment. Please try again later.');
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditingCommentId(null);
-    setEditedCommentText('');
-  };
-
-  const handleLikePost = async (postId: number) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('You must be logged in to like a post.');
-        window.location.href = '/login';
-        return;
-      }
-
-      const response = await fetch('http://127.0.0.1:8000/like-post/', {
-        method: 'POST',
+      const response = await axios.get(`http://127.0.0.1:8000/college-profiles/${id}/`, {
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          postId,
-          postType: 'college'
-        })
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
       });
+      const profileData = response.data;
+      setProfile(profileData);
 
-      if (!response.ok) {
-        throw new Error('Failed to like post');
-      }
-
-      const updatedNewsItem = { ...newsItem };
-      if (updatedNewsItem) {
-        updatedNewsItem.liked = !updatedNewsItem.liked;
-        updatedNewsItem.likes = updatedNewsItem.liked ? updatedNewsItem.likes + 1 : updatedNewsItem.likes - 1;
-        setNewsItem(updatedNewsItem);
-      }
-    } catch (error) {
-      setError('Failed to like post. Please try again later.');
-    }
-  };
-
-  const handleDislikePost = async (postId: number) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('You must be logged in to dislike a post.');
-        window.location.href = '/login';
-        return;
-      }
-
-      const response = await fetch('http://127.0.0.1:8000/dislike-post/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          postId,
-          postType: 'college'
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to dislike post');
-      }
-
-      fetchCollegePost(id);
-    } catch (error) {
-      setError('Failed to dislike post. Please try again later.');
-    }
-  };
-
-  const handleSharePost = async (postId: number) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('You must be logged in to share a post.');
-        window.location.href = '/login';
-        return;
-      }
-
-      const response = await fetch(
-        `http://127.0.0.1:8000/share-post/college/${postId}`,
-        {
-          method: 'POST',
+      if (profileData.campus) {
+        const campusResponse = await axios.get(`http://127.0.0.1:8000/campus-profiles/${profileData.campus}/`, {
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        setCampusName(campusResponse.data.name);
+      }
+
+      if (profileData.university) {
+        const universityResponse = await axios.get(`http://127.0.0.1:8000/university-profiles/${profileData.university}/`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        setUniversityName(universityResponse.data.name);
+      }
+
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error fetching profile:', error.message);
+        setError(error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRatingsAndComments = async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://127.0.0.1:8000/college_rating/?college_id=${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+      });
+      setRatingsAndComments(response.data);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error fetching ratings and comments:', error.message);
+      }
+    }
+  };
+
+  const fetchFollowersCount = async (id: string) => {
+    try {
+      const response = await axios.get(`http://127.0.0.1:8000/college_followers_count/${id}/`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setFollowersCount(response.data.followers_count);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error fetching followers count:', error.message);
+      }
+    }
+  };
+
+  const checkFollowingStatus = async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://127.0.0.1:8000/check-follow-status/college/${id}/`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setIsFollowing(response.data.is_following);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error checking following status:', error.message);
+      }
+    }
+  };
+
+  const handleRatingChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setRating(parseInt(event.target.value));
+  };
+
+  const handleCommentChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    setComment(event.target.value);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        'http://127.0.0.1:8000/college_rating/',
+        {
+          college_id: id,
+          value: rating,
+          comment: comment
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         }
       );
-
-      if (!response.ok) {
-        throw new Error('Failed to share post');
+      console.log('Rating and comment added successfully:', response.data);
+      setRating(0);
+      setComment('');
+      fetchRatingsAndComments(id);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error adding rating and comment:', error.message);
       }
-
-      const data = await response.json();
-      setShareLink(data.shareLink);
-      setShowShareModal(true);
-    } catch (error) {
-      setError('Failed to share post. Please try again later.');
     }
   };
 
-  const copyLink = async () => {
+  const handleFollow = async () => {
     try {
-      await navigator.clipboard.writeText(shareLink);
-      alert('Link copied to clipboard');
+      const token = localStorage.getItem('token');
+      await axios.post(`http://127.0.0.1:8000/follow-college-profile/${id}/`, null, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setIsFollowing(true);
+      setFollowersCount(followersCount + 1);
     } catch (error) {
-      setError('Failed to copy link. Please try again later.');
+      if (error instanceof Error) {
+        console.error('Error following profile:', error.message);
+      }
     }
   };
 
-  const handleCloseShareModal = () => {
-    setShowShareModal(false);
-  };
-
-  const handleImageClick = (url: string) => {
-    setSelectedImage(url);
-  };
-
-  const handleFileClick = (url: string) => {
-    setSelectedFile(url);
-  };
-
-  const handleCloseImageModal = () => {
-    setSelectedImage(null);
-  };
-
-  const handleCloseFileModal = () => {
-    setSelectedFile(null);
-  };
-
-  const handleOutsideClick = (event: React.MouseEvent) => {
-    if ((event.target as HTMLElement).classList.contains('modal')) {
-      setShowCommentsModal(false);
+  const handleUnfollow = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`http://127.0.0.1:8000/unfollow-college-profile/${id}/`, null, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setIsFollowing(false);
+      setFollowersCount(followersCount - 1);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error unfollowing profile:', error.message);
+      }
     }
   };
 
-  const toggleExpandPost = () => {
-    setExpandedPost(!expandedPost);
+  const toggleSeeMore = () => {
+    setSeeMore(!seeMore);
   };
 
-  const toggleDropdown = () => {
-    setDropdownOpen(!dropdownOpen);
+  const getGlowEffect = () => {
+    if (rating <= 2) {
+      return 'shadow-red-500';
+    } else if (rating <= 4) {
+      return 'shadow-yellow-500';
+    } else {
+      return 'shadow-green-500';
+    }
   };
 
-  const handleDropdownOption = (option: string) => {
-    alert(`Selected ${option} for post`);
-    setDropdownOpen(false);
+  const getRatingLabel = () => {
+    if (rating <= 2) {
+      return 'Bad';
+    } else if (rating <= 4) {
+      return 'Good';
+    } else {
+      return 'Excellent';
+    }
   };
 
-  const hidePost = () => {
-    setNewsItem(null);
+  const latestRatingsAndComments = ratingsAndComments.slice(0, 5);
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+      setShowAllComments(false);
+      setShowAboutModal(false);
+    }
   };
 
-  if (!newsItem) {
-    return <div className="container mx-auto p-14">Loading...</div>;
-  }
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside as EventListener);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside as EventListener);
+    };
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
-    <div className="container mx-auto p-14">
-      {error && <div className="alert alert-error shadow-lg mb-4">{error}</div>}
-      <div className="card w-full bg-base-100 shadow-xl mb-4" key={newsItem.id}>
-        <div className="card-body">
-          <div className="flex items-center mb-4">
-            <div className="avatar">
-              <div className="w-12 h-12 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                <Image src={"/images/lectures/temesgen.jfif"} alt={newsItem.ownerName} width={48} height={48} className="rounded-full" />
-              </div>
-            </div>
-            <div className="ml-4">
-              <p className="font-bold">{newsItem.ownerName}</p>
-              <p className="text-sm text-gray-500">{newsItem.date}</p>
-            </div>
-            <div className="ml-auto relative flex items-center">
-              <div className="dropdown-menu">
-                <button className="btn btn-sm btn-circle btn-outline" onClick={toggleDropdown}>
-                  <FaEllipsisV />
-                </button>
-                {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 text-white border border-gray-700 rounded-lg shadow-lg z-10">
-                    <ul className="py-1">
-                      <li className="px-4 py-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleDropdownOption('Save Post')}>Save Post</li>
-                      <li className="px-4 py-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleDropdownOption('Hide Post')}>Hide Post</li>
-                      <li className="px-4 py-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleDropdownOption('Report')}>Report</li>
-                      <li className="px-4 py-2 hover:bg-gray-700 cursor-pointer" onClick={() => handleDropdownOption('Other Option')}>Other Option</li>
-                    </ul>
-                  </div>
-                )}
-              </div>
-              <button className="btn btn-sm btn-circle btn-outline ml-2" onClick={hidePost}>
-                <LiaTimesSolid />
-              </button>
+    <div className="pt-24 px-4 md:px-8 lg:px-16 bg-gray-900 text-white min-h-screen">
+      {profile && (
+        <div className="bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+          <div className="relative">
+            <img src={profile.cover_photo} alt="Cover Photo" className="w-full h-64 object-cover" />
+            <img src={profile.profile_photo} alt="Profile Photo" className="w-24 h-24 rounded-full border-4 border-gray-800 absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2" />
+          </div>
+          <div className="p-4 text-center mt-12">
+            <h1 className="text-2xl font-bold truncate">{profile.name}</h1>
+            <p className="text-gray-400">{profile.bio}</p>
+            <div className="flex justify-center space-x-4 mt-4">
+              <p className="text-gray-400"><FaUserFriends className="inline-block mr-1" /> {followersCount} Followers</p>
+              {!isFollowing ? (
+                <button onClick={handleFollow} className="btn bg-blue-500 text-white">Follow</button>
+              ) : (
+                <button onClick={handleUnfollow} className="btn bg-red-500 text-white">Unfollow</button>
+              )}
             </div>
           </div>
-          <h2 className="card-title">{newsItem.title}</h2>
-          <p>
-            {expandedPost ? newsItem.content : `${newsItem.content.slice(0, 150)}...`}
-            {newsItem.content.length > 150 && (
-              <button onClick={toggleExpandPost} className="link link-primary ml-2">
-                {expandedPost ? 'See Less' : 'See More'}
-              </button>
-            )}
-          </p>
-          {newsItem.imageUrls.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              {newsItem.imageUrls.map((url, index) => (
-                <div key={index} className="relative">
-                  <img src={url} alt={`Image ${index + 1}`} className="rounded-lg cursor-pointer" onClick={() => handleImageClick(url)} />
-                  <div className="absolute bottom-2 right-2 bg-white rounded-full p-1 cursor-pointer" onClick={() => handleImageClick(url)}>
-                    <FaExpand />
-                  </div>
-                </div>
-              ))}
+          <div className="border-t border-gray-700 p-4">
+            <h2 className="text-lg font-bold mb-2">Bio</h2>
+            <p className="text-gray-400">{profile.bio}</p>
+          </div>
+          <div className="border-t border-gray-700 p-4">
+            <h2 className="text-lg font-bold mb-2">University Information</h2>
+            <div className="flex flex-wrap justify-center gap-4 text-gray-400">
+              <div className="w-full md:w-auto"><FaChalkboardTeacher className="inline-block mr-1" /><strong>Lectures:</strong> {profile.number_of_lectures}</div>
+              <div className="w-full md:w-auto"><FaBuilding className="inline-block mr-1" /><strong>Departments:</strong> {profile.number_of_departments}</div>
+              <div className="w-full md:w-auto"><FaUniversity className="inline-block mr-1" /><strong>Campuses:</strong> {profile.number_of_campuses}</div>
+              <div className="w-full md:w-auto"><FaBook className="inline-block mr-1" /><strong>Colleges:</strong> {profile.number_of_colleges}</div>
             </div>
-          )}
-          {newsItem.fileUrl && (
-            <div className="mt-4">
-              <a href="#" onClick={() => handleFileClick(newsItem.fileUrl)} className="link link-primary flex items-center">
-                <FaSearchPlus className="mr-1" /> View File
-              </a>
-              <div className="mt-2">
-                <a href={newsItem.fileUrl} download className="link link-primary flex items-center">
-                  <FaDownload className="mr-1" /> Download File
-                </a>
+            <div className={`mt-4 transition-all duration-300 ${seeMore ? 'max-h-screen' : 'max-h-0 overflow-hidden'}`}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div><FaRegCalendarAlt className="inline-block mr-1" /><strong>Link:</strong> <a href={profile.link} target="_blank" rel="noopener noreferrer" className="text-blue-500">{profile.link}</a></div>
+                <div><FaRegCalendarAlt className="inline-block mr-1" /><strong>Established:</strong> {profile.establishment_date}</div>
+                <div><FaMapMarkerAlt className="inline-block mr-1" /><strong>Region:</strong> {profile.region}</div>
+                <div><FaMapMarkerAlt className="inline-block mr-1" /><strong>City:</strong> {profile.city}</div>
+                <div><FaUniversity className="inline-block mr-1" /><strong>PO Box:</strong> {profile.pobox}</div>
+                <div><FaUniversity className="inline-block mr-1" /><strong>Specific Place:</strong> {profile.specific_place}</div>
+                <div><FaUniversity className="inline-block mr-1" /><strong>Campus:</strong> {campusName}</div>
+                <div><FaUniversity className="inline-block mr-1" /><strong>University:</strong> {universityName}</div>
+                <button onClick={() => setShowAboutModal(true)} className="mt-2 text-blue-500">About</button>
               </div>
             </div>
-          )}
-          <div className="card-actions justify-between items-center mt-4">
-            <div className="flex items-center space-x-4">
-              <button className={`btn btn-ghost btn-sm ${newsItem.liked ? 'text-blue-500' : ''}`} onClick={() => handleLikePost(newsItem.id)}>
-                <FaThumbsUp className="mr-1" /> {newsItem.likes}
-              </button>
-              <button className="btn btn-ghost btn-sm" onClick={() => handleSharePost(newsItem.id)}>
-                <FaShare className="mr-1" /> {newsItem.shares}
-              </button>
-              <button className="btn btn-ghost btn-sm" onClick={() => setShowShareModal(true)}>
-                <FaCopy className="mr-1" />
-              </button>
-              <button className="btn btn-ghost btn-sm" onClick={() => toggleComments(newsItem.id)}>
-                <FaComments className="mr-1" /> Show Comments
-              </button>
-            </div>
+            <button onClick={toggleSeeMore} className="mt-2 text-blue-500">{seeMore ? 'Show Less' : 'See More'}</button>
           </div>
-          <div className="mt-4">
-            <div className="flex items-center space-x-2">
-              <textarea
-                value={comments[newsItem.id] || ''}
-                onChange={e => handleCommentChange(e, newsItem.id)}
-                placeholder="Add a comment..."
-                rows={1}
-                className="textarea textarea-bordered w-full"
+          <div className="border-t border-gray-700 p-4 text-center">
+            <h2 className="text-lg font-bold mb-2">Rate and Comment</h2>
+            <div className={`bg-gray-800 p-4 rounded-lg shadow-md w-full md:w-1/2 mx-auto transition-shadow duration-300 ${getGlowEffect()}`}>
+              <input
+                type="range"
+                min="0"
+                max="5"
+                step="1"
+                value={rating}
+                onChange={handleRatingChange}
+                className="w-full mb-2 glow-slider"
               />
-              <button className="btn btn-primary btn-sm" onClick={() => handleAddComment(newsItem.id)}>
-                <FaEdit />
-              </button>
+              <p className="text-sm mb-2">Selected Rating: {rating} ({getRatingLabel()})</p>
+              <textarea
+                value={comment}
+                onChange={handleCommentChange}
+                className="w-full h-24 px-3 py-2 border border-gray-700 rounded mb-4 bg-gray-900 text-white"
+                placeholder="Write your comment here..."
+                style={{ resize: "none" }}
+              ></textarea>
+              <button onClick={handleSubmit} className="btn btn-primary w-full">Submit</button>
             </div>
           </div>
-        </div>
-      </div>
-      {showShareModal && (
-        <div className="modal modal-open">
-          <div className="modal-box">
-            <button className="btn btn-sm btn-circle absolute right-2 top-2" onClick={handleCloseShareModal}>
-              &times;
-            </button>
-            <h2 className="text-xl font-semibold mb-2">Share Link</h2>
-            <input type="text" value={shareLink} readOnly className="input input-bordered w-full mb-2" />
-            <button className="btn btn-primary w-full" onClick={copyLink}>Copy Link</button>
-          </div>
-        </div>
-      )}
-      {selectedImage && (
-        <div className="modal modal-open" onClick={handleCloseImageModal}>
-          <div className="modal-box">
-            <button className="btn btn-sm btn-circle absolute right-2 top-2" onClick={handleCloseImageModal}>
-              &times;
-            </button>
-            <img src={selectedImage} alt="Selected" className="w-full h-auto" />
-          </div>
-        </div>
-      )}
-      {selectedFile && (
-        <div className="modal modal-open" onClick={handleCloseFileModal}>
-          <div className="modal-box">
-            <button className="btn btn-sm btn-circle absolute right-2 top-2" onClick={handleCloseFileModal}>
-              &times;
-            </button>
-            <iframe src={selectedFile} className="w-full h-96" />
-            <div className="mt-4">
-              <a href={selectedFile} download className="link link-primary flex items-center">
-                <FaDownload className="mr-1" /> Download File
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-      {showCommentsModal && (
-        <div className="modal modal-open" onClick={handleOutsideClick}>
-          <div className="modal-box w-11/12 max-w-5xl relative bg-gray-800 text-white" onClick={(e) => e.stopPropagation()}>
-            <button className="btn btn-sm btn-circle absolute right-2 top-2 text-white" onClick={() => toggleComments(newsItem.id)}>
-              &times;
-            </button>
-            <h3 className="text-lg font-semibold mb-4">Comments</h3>
-            <div className="overflow-y-auto max-h-96 pr-4">
-              {newsItem.comments.map(comment => (
-                <div key={comment.id} className="mb-4 group">
-                  <div className="flex items-start space-x-3">
-                    <div className="avatar">
-                      <div className="w-10 h-10 rounded-full">
-                        <img src={comment.author.Avatar} alt={comment.author.Username} />
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="font-bold">{comment.author.Username}</p>
-                          <p className="text-gray-300">{comment.body}</p>
-                        </div>
-                        <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="btn btn-xs btn-outline btn-primary" onClick={() => handleEditComment(comment.id, comment.body)}>
-                            <FaEdit />
-                          </button>
-                          <button className="btn btn-xs btn-outline btn-danger" onClick={() => handleDeleteComment(comment.id, newsItem.id)}>
-                            <FaTrash />
-                          </button>
-                        </div>
-                      </div>
-                      {editingCommentId === comment.id && (
-                        <div className="mt-2">
-                          <textarea
-                            value={editedCommentText}
-                            onChange={e => setEditedCommentText(e.target.value)}
-                            rows={3}
-                            className="textarea textarea-bordered w-full"
-                          />
-                          <div className="flex items-center space-x-2 mt-2">
-                            <button className="btn btn-primary btn-sm" onClick={() => handleSaveEditedComment(comment.id)}>Save</button>
-                            <button className="btn btn-secondary btn-sm" onClick={handleCancelEdit}>Cancel</button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+          <div className="border-t border-gray-700 p-4">
+            <h2 className="text-lg font-bold mb-2">Ratings and Comments</h2>
+            <ul className="space-y-2">
+              {latestRatingsAndComments.map((item, index) => (
+                <li key={index} className="bg-gray-800 p-4 rounded shadow">
+                  <p className="font-bold">Rating: {item.value}</p>
+                  <p>Comment: {item.comment}</p>
+                </li>
               ))}
-              <div ref={commentsEndRef} />
+            </ul>
+            {ratingsAndComments.length > 5 && (
+              <button onClick={() => setShowAllComments(true)} className="mt-2 text-blue-500">See All</button>
+            )}
+          </div>
+          <div className="border-t border-gray-700 p-4">
+            <h2 className="text-lg font-bold mb-2">Location</h2>
+            <div className="w-full h-64">
+              <iframe
+                src={`https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=${profile.location}`}
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
             </div>
-            <div className="sticky bottom-0 left-0 w-full p-4 bg-gray-800">
-              <div className="flex items-center space-x-2">
-                <textarea
-                  value={comments[newsItem.id] || ''}
-                  onChange={e => handleCommentChange(e, newsItem.id)}
-                  placeholder="Add a comment..."
-                  rows={1}
-                  className="textarea textarea-bordered w-full bg-gray-700 text-white placeholder-gray-400"
-                />
-                <button className="btn btn-primary btn-sm" onClick={() => handleAddComment(newsItem.id)}>
-                  <FaEdit />
-                </button>
-              </div>
-            </div>
+          </div>
+        </div>
+      )}
+
+      {showAllComments && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div ref={modalRef} className="bg-gray-900 p-6 rounded-lg shadow-lg w-11/12 md:w-3/4 lg:w-1/2 max-h-full overflow-y-auto">
+            <h2 className="text-lg font-bold mb-4">All Ratings and Comments</h2>
+            <ul className="space-y-2">
+              {ratingsAndComments.map((item, index) => (
+                <li key={index} className="bg-gray-800 p-4 rounded shadow">
+                  <p className="font-bold">Rating: {item.value}</p>
+                  <p>Comment: {item.comment}</p>
+                </li>
+              ))}
+            </ul>
+            <button onClick={() => setShowAllComments(false)} className="mt-4 btn btn-primary">Close</button>
+          </div>
+        </div>
+      )}
+
+      {showAboutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div ref={modalRef} className="bg-gray-900 p-6 rounded-lg shadow-lg w-11/12 md:w-3/4 lg:w-1/2 max-h-full overflow-y-auto">
+            <h2 className="text-lg font-bold mb-4">About</h2>
+            <p className="text-gray-400">{profile?.about}</p>
+            <button onClick={() => setShowAboutModal(false)} className="mt-4 btn btn-primary">Close</button>
           </div>
         </div>
       )}
@@ -589,4 +390,4 @@ const CollegeNewsFeed = ({ params }) => {
   );
 };
 
-export default CollegeNewsFeed;
+export default CollegeProfileDetailPage;

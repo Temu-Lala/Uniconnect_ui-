@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState, Fragment } from 'react';
+import React, { useEffect, useState, Fragment } from 'react';
 import axios from 'axios';
 import Link from "next/link";
 import Image from "next/image";
@@ -10,13 +10,23 @@ import { IoDesktop } from "react-icons/io5";
 import { GiTeacher } from "react-icons/gi";
 import { Dialog, Transition } from '@headlessui/react';
 
-const formatDate = (timestamp) => {
+interface Notification {
+  id: number;
+  recipient: number;
+  sender: string;
+  message: string;
+  timestamp: string;
+  type: string;
+  imgPath: string;
+}
+
+const formatDate = (timestamp: string) => {
   const date = new Date(timestamp);
-  const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
   return date.toLocaleDateString('en-US', options);
 };
 
-const decodeToken = (token) => {
+const decodeToken = (token: string) => {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -31,10 +41,10 @@ const decodeToken = (token) => {
 };
 
 const Notifications = () => {
-  const [notifications, setNotifications] = useState([]);
-  const [selectedNotification, setSelectedNotification] = useState(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState<number | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -52,7 +62,7 @@ const Notifications = () => {
     }
   }, []);
 
-  const fetchNotifications = async (userId, token) => {
+  const fetchNotifications = async (userId: number, token: string) => {
     try {
       console.log('Fetching notifications for user ID:', userId);
       const response = await axios.get('http://127.0.0.1:8000/notifications/', {
@@ -61,18 +71,18 @@ const Notifications = () => {
         }
       });
       console.log('Fetched Notifications:', response.data);
-      const userNotifications = response.data.filter(notification => notification.recipient === userId);
+      const userNotifications = response.data.filter((notification: Notification) => notification.recipient === userId);
       console.log('Filtered Notifications:', userNotifications);
       setNotifications(userNotifications);
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      if (error.response) {
+      if (axios.isAxiosError(error) && error.response) {
         console.error('Server Response:', error.response.data);
       }
     }
   };
 
-  const openModal = (notification) => {
+  const openModal = (notification: Notification) => {
     setSelectedNotification(notification);
     setIsModalOpen(true);
   };

@@ -1,13 +1,49 @@
-
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent, MouseEvent } from 'react';
 import axios from 'axios';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { FaSave, FaWindowClose } from 'react-icons/fa';
 
+interface LecturerCVData {
+  id?: number;
+  name: string;
+  location: string;
+  job_title: string;
+  skills1: string;
+  skills2: string;
+  skills3: string;
+  skills4: string;
+  about: string;
+  phone: string; // Added phone property here
+  email: string;
+  linkedin: string;
+  education_background: string;
+  background_description: string;
+  education_background2: string;
+  background_description2: string;
+  education_background3: string;
+  background_description3: string;
+  languages: string;
+  languages2: string;
+  languages3: string;
+  professional_experience: string;
+  professional_experience2: string;
+  professional_experience3: string;
+  key_responsibilities: string;
+  key_responsibilities2: string;
+  key_responsibilities3: string;
+  project1: string;
+  project_description1: string;
+  project2: string;
+  project_description2: string;
+  project3: string;
+  project_description3: string;
+  user?: number; // Added user property here
+}
+
 const LecturerCV = () => {
-  const [lecturerCV, setLecturerCV] = useState({
+  const [lecturerCV, setLecturerCV] = useState<LecturerCVData>({
     name: '',
     location: '',
     job_title: '',
@@ -42,8 +78,8 @@ const LecturerCV = () => {
     project_description3: '',
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -58,13 +94,13 @@ const LecturerCV = () => {
             Authorization: `Bearer ${authToken}`,
           },
         });
-        const userCV = response.data.find(cv => cv.user === getCurrentUserId(authToken));
+        const userCV = response.data.find((cv: LecturerCVData) => cv.user === getCurrentUserId(authToken));
         if (!userCV) {
           throw new Error('Lecturer CV not found');
         }
         setLecturerCV(userCV);
       } catch (error) {
-        setError(error.message);
+        setError((error as Error).message);
       } finally {
         setLoading(false);
       }
@@ -83,7 +119,7 @@ const LecturerCV = () => {
         });
         setCurrentUser(response.data);
       } catch (error) {
-        console.error('Error fetching current user:', error.message);
+        console.error('Error fetching current user:', (error as Error).message);
       }
     };
 
@@ -91,7 +127,7 @@ const LecturerCV = () => {
     fetchCurrentUser();
   }, []);
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setLecturerCV((prevData) => ({
       ...prevData,
@@ -99,7 +135,7 @@ const LecturerCV = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     try {
       const authToken = localStorage.getItem('token');
@@ -120,16 +156,16 @@ const LecturerCV = () => {
       });
       console.log('Lecturer CV updated successfully');
     } catch (error) {
-      console.error('Error updating lecturer CV:', error.message);
+      console.error('Error updating lecturer CV:', (error as Error).message);
     }
   };
 
-  const getCurrentUserId = (token) => {
+  const getCurrentUserId = (token: string) => {
     try {
       const parsedToken = JSON.parse(atob(token.split('.')[1]));
       return parsedToken.user_id;
     } catch (error) {
-      console.error('Error parsing JWT token:', error.message);
+      console.error('Error parsing JWT token:', (error as Error).message);
       return null;
     }
   };

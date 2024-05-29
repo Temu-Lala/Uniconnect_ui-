@@ -1,25 +1,67 @@
-"use client"
-import { useState, useEffect, useRef } from 'react';
+"use client";
+import { useState, useEffect, useRef, ChangeEvent, MouseEvent } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { FaUniversity, FaMapMarkerAlt, FaRegCalendarAlt, FaUserFriends, FaChalkboardTeacher, FaBuilding, FaBook, FaMicroscope } from 'react-icons/fa';
+import {
+  FaUniversity,
+  FaMapMarkerAlt,
+  FaRegCalendarAlt,
+  FaUserFriends,
+  FaChalkboardTeacher,
+  FaBuilding,
+  FaBook,
+  FaMicroscope
+} from 'react-icons/fa';
 
-const UniversityProfileDetailPage = ({ params }) => {
+interface Params {
+  id: string;
+}
+
+interface Profile {
+  cover_photo: string;
+  profile_photo: string;
+  name: string;
+  description: string;
+  bio: string;
+  number_of_lectures: number;
+  number_of_departments: number;
+  number_of_campuses: number;
+  number_of_colleges: number;
+  number_of_libraries: number;
+  number_of_laboratories: number;
+  link: string;
+  establishment_date: string;
+  region: string;
+  city: string;
+  pobox: string;
+  category: string;
+  health_condition_support: string;
+  status: string;
+  location: string;
+  about: string;
+}
+
+interface RatingAndComment {
+  value: number;
+  comment: string;
+}
+
+const UniversityProfileDetailPage = ({ params }: { params: Params }) => {
   const router = useRouter();
   const { id } = params;
 
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
-  const [ratingsAndComments, setRatingsAndComments] = useState([]);
+  const [ratingsAndComments, setRatingsAndComments] = useState<RatingAndComment[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [seeMore, setSeeMore] = useState(false);
   const [showAllComments, setShowAllComments] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
-  const modalRef = useRef(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (id) {
@@ -30,7 +72,7 @@ const UniversityProfileDetailPage = ({ params }) => {
     }
   }, [id]);
 
-  const fetchProfile = async (id) => {
+  const fetchProfile = async (id: string) => {
     try {
       const response = await axios.get(`http://127.0.0.1:8000/university-profiles/${id}/`, {
         headers: {
@@ -39,14 +81,14 @@ const UniversityProfileDetailPage = ({ params }) => {
       });
       setProfile(response.data);
     } catch (error) {
-      console.error('Error fetching profile:', error.message);
-      setError(error.message);
+      console.error('Error fetching profile:', (error as Error).message);
+      setError((error as Error).message);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchRatingsAndComments = async (id) => {
+  const fetchRatingsAndComments = async (id: string) => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`http://127.0.0.1:8000/university_rating/?university_id=${id}`, {
@@ -56,11 +98,11 @@ const UniversityProfileDetailPage = ({ params }) => {
       });
       setRatingsAndComments(response.data);
     } catch (error) {
-      console.error('Error fetching ratings and comments:', error.message);
+      console.error('Error fetching ratings and comments:', (error as Error).message);
     }
   };
 
-  const checkFollowingStatus = async (id) => {
+  const checkFollowingStatus = async (id: string) => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`http://127.0.0.1:8000/check-follow-university-status/university/${id}/`, {
@@ -70,24 +112,24 @@ const UniversityProfileDetailPage = ({ params }) => {
       });
       setIsFollowing(response.data.is_following);
     } catch (error) {
-      console.error('Error checking following status:', error.message);
+      console.error('Error checking following status:', (error as Error).message);
     }
   };
 
-  const fetchFollowersCount = async (id) => {
+  const fetchFollowersCount = async (id: string) => {
     try {
       const response = await axios.get(`http://127.0.0.1:8000/university_followers_count/${id}/`);
       setFollowersCount(response.data.followers_count);
     } catch (error) {
-      console.error('Error fetching followers count:', error.message);
+      console.error('Error fetching followers count:', (error as Error).message);
     }
   };
 
-  const handleRatingChange = (event) => {
+  const handleRatingChange = (event: ChangeEvent<HTMLInputElement>) => {
     setRating(parseInt(event.target.value));
   };
 
-  const handleCommentChange = (event) => {
+  const handleCommentChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setComment(event.target.value);
   };
 
@@ -112,7 +154,7 @@ const UniversityProfileDetailPage = ({ params }) => {
       setComment('');
       fetchRatingsAndComments(id);
     } catch (error) {
-      console.error('Error adding rating and comment:', error.message);
+      console.error('Error adding rating and comment:', (error as Error).message);
     }
   };
 
@@ -132,7 +174,7 @@ const UniversityProfileDetailPage = ({ params }) => {
       setIsFollowing(action === 'follow');
       fetchFollowersCount(id);
     } catch (error) {
-      console.error('Error following/unfollowing profile:', error.message);
+      console.error('Error following/unfollowing profile:', (error as Error).message);
     }
   };
 
@@ -162,17 +204,17 @@ const UniversityProfileDetailPage = ({ params }) => {
 
   const latestRatingsAndComments = ratingsAndComments.slice(0, 5);
 
-  const handleClickOutside = (event) => {
-    if (modalRef.current && !modalRef.current.contains(event.target)) {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
       setShowAllComments(false);
       setShowAboutModal(false);
     }
   };
 
   useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside as unknown as EventListener);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside as unknown as EventListener);
     };
   }, []);
 
@@ -270,7 +312,7 @@ const UniversityProfileDetailPage = ({ params }) => {
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
-                allowFullScreen=""
+                allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
               ></iframe>
@@ -300,7 +342,7 @@ const UniversityProfileDetailPage = ({ params }) => {
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
           <div ref={modalRef} className="bg-gray-900 p-6 rounded-lg shadow-lg w-11/12 md:w-3/4 lg:w-1/2 max-h-full overflow-y-auto">
             <h2 className="text-lg font-bold mb-4">About</h2>
-            <p className="text-gray-400">{profile.about}</p>
+            <p className="text-gray-400">{profile?.about}</p>
             <button onClick={() => setShowAboutModal(false)} className="mt-4 btn btn-primary">Close</button>
           </div>
         </div>

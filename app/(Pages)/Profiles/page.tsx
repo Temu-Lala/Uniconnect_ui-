@@ -34,7 +34,6 @@ const LandingPage = () => {
   return (
     <div>
       <h1>Loading...</h1>
-      <p>fggggggggggggggggggggggggggggggggggggggg</p>
       {/* You can add a loading spinner or message here */}
     </div>
   );

@@ -1,7 +1,14 @@
 import React from 'react';
 import Image from 'next/image';
 
-const Avatar = ({ profilePhoto, name, onClick }) => {
+// Define the props type
+interface AvatarProps {
+  profilePhoto: string;
+  name: string;
+  onClick: () => void;
+}
+
+const Avatar: React.FC<AvatarProps> = ({ profilePhoto, name, onClick }) => {
   return (
     <div className="avatar" onClick={onClick}>
       <div className="w-12 h-12 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1 overflow-hidden cursor-pointer">

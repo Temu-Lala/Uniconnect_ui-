@@ -2,7 +2,6 @@
 
 import NewsFeed from "./News/page";
 import UniversityList from "./UnivesityList/page";
-import LecturesList from "./LecturesList/page";
 import NavBar from "../Components/NavBar/NavBar";
 import { useRouter } from "next/navigation";
 import React from "react";
@@ -14,7 +13,6 @@ export default function Home() {
       <NavBar />
       <div className="flex flex-1 pt-16 bg-[#292a2c]">
         <aside className="hidden xl:flex fixed top-0 left-0 pt-20 w-[360px] h-screen shadow overflow-hidden flex-col justify-between">
-          <LecturesList />
           <div className="flex flex-wrap gap-1 text-gray-500 text-sm p-3">
             <Link href="#">Privacy</Link>·<Link href="#">Terms</Link>·
             <Link href="#">Advertising</Link>·<Link href="#">Ad Choices</Link>·

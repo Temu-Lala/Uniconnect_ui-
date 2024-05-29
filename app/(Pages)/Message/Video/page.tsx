@@ -1,17 +1,17 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import AgoraRTC from 'agora-rtc-sdk-ng';
+import AgoraRTC, { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng';
 import { FaVideo, FaVideoSlash, FaMicrophone, FaMicrophoneSlash } from 'react-icons/fa';
 
 const Video = () => {
-  const [client, setClient] = useState(null);
+  const [client, setClient] = useState<IAgoraRTCClient | null>(null);
   const [isVideoActive, setIsVideoActive] = useState(false);
   const [isAudioActive, setIsAudioActive] = useState(false);
-  const [localVideoTrack, setLocalVideoTrack] = useState(null);
-  const [localAudioTrack, setLocalAudioTrack] = useState(null);
+  const [localVideoTrack, setLocalVideoTrack] = useState<ICameraVideoTrack | null>(null);
+  const [localAudioTrack, setLocalAudioTrack] = useState<IMicrophoneAudioTrack | null>(null);
 
   const appId = 'YOUR_APP_ID';
-  const token = 'YOUR_TOKEN'; // You may need to generate a token from your server
+  const token = 'YOUR_TOKEN'; 
   const channelName = 'YOUR_CHANNEL_NAME';
 
   useEffect(() => {
@@ -19,7 +19,7 @@ const Video = () => {
       try {
         const agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
         setClient(agoraClient);
-        await agoraClient.initialize({ appId });
+        await agoraClient.join(appId, channelName, token);
         console.log('AgoraRTC client initialized');
       } catch (error) {
         console.error('Failed to initialize AgoraRTC client', error);
@@ -34,60 +34,57 @@ const Video = () => {
         client.leave();
       }
     };
-  }, []);
+  }, [client]);
 
-  const joinChannel = async () => {
+  const startCall = async () => {
+    if (!client) return;
     try {
-      const uid = await client.join({ token, channelName });
-      console.log('User ' + uid + ' joined channel successfully');
+      const videoTrack = await AgoraRTC.createCameraVideoTrack();
+      const audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+
+      setLocalVideoTrack(videoTrack);
+      setLocalAudioTrack(audioTrack);
+
+      await client.publish([videoTrack, audioTrack]);
+      console.log('Local video and audio tracks published successfully');
       setIsVideoActive(true);
       setIsAudioActive(true);
-
-      const videoTrack = await AgoraRTC.createCameraVideoTrack();
-      await client.publish(videoTrack);
-      setLocalVideoTrack(videoTrack);
-
-      const audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-      await client.publish(audioTrack);
-      setLocalAudioTrack(audioTrack);
     } catch (error) {
-      console.error('Join channel failed', error);
+      console.error('Failed to publish local tracks', error);
     }
   };
 
   const toggleVideo = async () => {
-    if (isVideoActive) {
-      try {
+    if (!client || !localVideoTrack) return;
+
+    try {
+      if (isVideoActive) {
         await client.unpublish(localVideoTrack);
+        localVideoTrack.close();
         setLocalVideoTrack(null);
         setIsVideoActive(false);
-      } catch (error) {
-        console.error('Failed to unpublish local video track', error);
+      } else {
+        await startCall();
       }
-    } else {
-      try {
-        await joinChannel();
-      } catch (error) {
-        console.error('Failed to join channel and start video', error);
-      }
+    } catch (error) {
+      console.error('Failed to toggle video track', error);
     }
   };
 
   const toggleAudio = async () => {
-    if (isAudioActive) {
-      try {
+    if (!client || !localAudioTrack) return;
+
+    try {
+      if (isAudioActive) {
         await client.unpublish(localAudioTrack);
+        localAudioTrack.close();
         setLocalAudioTrack(null);
         setIsAudioActive(false);
-      } catch (error) {
-        console.error('Failed to unpublish local audio track', error);
+      } else {
+        await startCall();
       }
-    } else {
-      try {
-        await joinChannel();
-      } catch (error) {
-        console.error('Failed to join channel and start audio', error);
-      }
+    } catch (error) {
+      console.error('Failed to toggle audio track', error);
     }
   };
 
@@ -106,7 +103,7 @@ const Video = () => {
           ) : (
             <button
               className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
-              onClick={() => { toggleVideo(); toggleAudio(); }} // Toggle both video and audio
+              onClick={() => { toggleVideo(); toggleAudio(); }} 
             >
               <FaVideo size={20} /> Turn On Video
             </button>
@@ -121,14 +118,24 @@ const Video = () => {
           ) : (
             <button
               className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
-              onClick={() => { toggleAudio(); toggleVideo(); }} // Toggle both audio and video
+              onClick={() => { toggleAudio(); toggleVideo(); }} 
             >
               <FaMicrophone size={20} /> Unmute
             </button>
           )}
         </div>
         <div className="mt-8">
-          {localVideoTrack && <video ref={(node) => (node.srcObject = localVideoTrack.mediaStream)} autoPlay />}
+          {localVideoTrack && (
+            <video
+              ref={(node) => {
+                if (node && localVideoTrack) {
+                  localVideoTrack.play(node);
+                }
+              }}
+              autoPlay
+              style={{ width: '100%', height: 'auto' }}
+            />
+          )}
         </div>
       </div>
     </div>

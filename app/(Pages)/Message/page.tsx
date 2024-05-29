@@ -1,20 +1,38 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import EmojiPicker from 'emoji-picker-react';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { MdEmojiEmotions } from 'react-icons/md';
 
-// Contact List Component
-const ContactList = ({ onContactSelect }) => {
-  const [contacts, setContacts] = useState([]);
+interface Contact {
+  id: number;
+  username: string;
+  avatar: string;
+  is_online: boolean;
+}
+
+interface Message {
+  id: number;
+  sender: number;
+  content: string;
+  timestamp: string;
+  read: boolean;
+}
+
+interface ContactListProps {
+  onContactSelect: (contact: Contact) => void;
+}
+
+const ContactList: React.FC<ContactListProps> = ({ onContactSelect }) => {
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState<Contact[]>([]);
   const authToken = localStorage.getItem('token');
 
   useEffect(() => {
     const fetchContactsWithChats = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/messages/contacts_with_chats/', {
+        const response = await axios.get<Contact[]>('http://127.0.0.1:8000/messages/contacts_with_chats/', {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${authToken}`
@@ -31,7 +49,7 @@ const ContactList = ({ onContactSelect }) => {
 
   const handleSearch = async () => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/GustUser/?search=${searchTerm}`, {
+      const response = await axios.get<Contact[]>(`http://127.0.0.1:8000/GustUser/?search=${searchTerm}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`
@@ -51,26 +69,29 @@ const ContactList = ({ onContactSelect }) => {
     }
   }, [searchTerm]);
 
-  const handleContactClick = (contact) => {
+  const handleContactClick = (contact: Contact) => {
     onContactSelect(contact);
     localStorage.setItem('selectedContact', JSON.stringify(contact));
   };
 
   return (
-    <div className="w-1/4 pt-40 bg-gray-200 p-4 overflow-y-auto">
-      <h2 className="text-lg font-bold mb-4">Contacts</h2>
+    <div className="w-full md:w-1/4 bg-base-300 p-4 overflow-y-auto shadow-lg rounded-lg">
+      <h2 className="text-lg font-bold mb-4 text-white">Contacts</h2>
       <input
         type="text"
         placeholder="Search users..."
-        className="border border-gray-300 rounded-full px-3 py-1 mb-4 w-full"
+        className="input input-bordered input-primary w-full mb-4"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
       <ul>
         {(searchTerm ? searchResults : contacts).map(contact => (
-          <li key={contact.id} className="flex items-center py-2 hover:bg-gray-300 cursor-pointer" onClick={() => handleContactClick(contact)}>
-            <img className="w-8 h-8 rounded-full mr-2" src={contact.avatar} alt="Avatar" />
-            <span className="text-gray-800">{contact.username}</span>
+          <li key={contact.id} className="flex items-center py-2 hover:bg-base-200 cursor-pointer rounded-lg p-2 shadow-md" onClick={() => handleContactClick(contact)}>
+            <div className="relative mr-2">
+              <img className="w-8 h-8 rounded-full" src={contact.avatar} alt="Avatar" />
+              {contact.is_online && <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>}
+            </div>
+            <span className="text-white">{contact.username}</span>
           </li>
         ))}
       </ul>
@@ -79,19 +100,20 @@ const ContactList = ({ onContactSelect }) => {
 };
 
 // Main ChatApp Component
-const ChatApp = () => {
-  const [messages, setMessages] = useState([]);
+const ChatApp: React.FC = () => {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [selectedContact, setSelectedContact] = useState(null);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
-  const messagesEndRef = useRef(null);
-  const emojiPickerRef = useRef(null);
+  const [typing, setTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
   const authToken = localStorage.getItem('token');
   const senderId = authToken ? JSON.parse(atob(authToken.split('.')[1])).user_id : null;
 
-  const fetchMessages = async (recipientId) => {
+  const fetchMessages = async (recipientId: number) => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/messages/user_messages/?recipient_id=${recipientId}&sender_id=${senderId}`, {
+      const response = await axios.get<Message[]>(`http://127.0.0.1:8000/messages/user_messages/?recipient_id=${recipientId}&sender_id=${senderId}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`
@@ -107,7 +129,7 @@ const ChatApp = () => {
     if (!newMessage.trim() || !selectedContact) return;
 
     try {
-      const response = await axios.post(
+      const response = await axios.post<Message>(
         `http://127.0.0.1:8000/messages/send_message/`,
         {
           content: newMessage.trim(),
@@ -129,15 +151,15 @@ const ChatApp = () => {
     }
   };
 
-  const handleContactSelect = async (contact) => {
+  const handleContactSelect = async (contact: Contact) => {
     setSelectedContact(contact);
     await fetchMessages(contact.id);
     localStorage.setItem('selectedContact', JSON.stringify(contact));
   };
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target) && emojiPickerVisible) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node) && emojiPickerVisible) {
         setEmojiPickerVisible(false);
       }
     };
@@ -149,7 +171,7 @@ const ChatApp = () => {
   }, [emojiPickerVisible]);
 
   useEffect(() => {
-    const storedContact = JSON.parse(localStorage.getItem('selectedContact'));
+    const storedContact = JSON.parse(localStorage.getItem('selectedContact') as string);
     if (storedContact) {
       setSelectedContact(storedContact);
       fetchMessages(storedContact.id);
@@ -160,18 +182,25 @@ const ChatApp = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleEmojiClick = emoji => {
+  const handleEmojiClick = (emoji: EmojiClickData) => {
     setNewMessage(prevMessage => prevMessage + emoji.emoji);
   };
 
+  const handleTyping = () => {
+    if (!typing) {
+      setTyping(true);
+      setTimeout(() => setTyping(false), 2000); // Simulating typing indicator for 2 seconds
+    }
+  };
+
   return (
-    <div className="flex pt-40 bg-gray-100 text-black min-h-screen">
+    <div className="flex flex-col md:flex-row pt-40 bg-base-100 text-base-content min-h-screen">
       <ContactList onContactSelect={handleContactSelect} />
 
       {selectedContact ? (
-        <div className="w-3/4 flex flex-col">
-          <div className="bg-white rounded-lg shadow-md overflow-hidden flex-1 relative">
-            <div className="bg-teal-500 text-white p-4 flex justify-between items-center">
+        <div className="w-full md:w-3/4 flex flex-col mt-4 md:mt-0">
+          <div className="bg-base-300 rounded-lg shadow-lg overflow-hidden flex-1 relative">
+            <div className="bg-primary text-primary-content p-4 flex justify-between items-center shadow-md">
               <p className="font-bold">{selectedContact.username}</p>
               <div className="flex items-center">
                 <button onClick={() => setEmojiPickerVisible(!emojiPickerVisible)}>
@@ -180,41 +209,49 @@ const ChatApp = () => {
               </div>
             </div>
 
-            <div className="px-4 py-2 overflow-y-auto max-h-96">
+            <div className="px-4 py-2 overflow-y-auto h-64 md:h-96">
               {messages.length === 0 ? (
-                <p className="text-center text-gray-500 py-4">No messages yet</p>
+                <p className="text-center text-base-content py-4">No messages yet</p>
               ) : (
                 messages.map((message, index) => (
                   <div key={index} className={`flex mb-4 ${message.sender === senderId ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`bg-${message.sender === senderId ? 'teal' : 'gray'}-100 text-gray-800 p-3 rounded-lg max-w-md`}>
+                    <div className={`bg-${message.sender === senderId ? 'primary' : 'base-200'} text-base-content p-3 rounded-lg max-w-md shadow-md`}>
                       <p className="text-sm">{message.content}</p>
+                      <span className="block text-xs text-right mt-1 text-base-content/70">{new Date(message.timestamp).toLocaleTimeString()}</span>
+                      {message.sender === senderId && message.read && (
+                        <span className="block text-xs text-right mt-1 text-base-content/50">Read</span>
+                      )}
                     </div>
                   </div>
                 ))
               )}
 
               <div ref={messagesEndRef} />
+              {typing && <div className="text-sm text-gray-500">Typing...</div>}
             </div>
 
             {emojiPickerVisible && (
-              <div ref={emojiPickerRef} className="absolute bottom-10 right-0 z-10 bg-white p-4 shadow-lg">
+              <div ref={emojiPickerRef} className="absolute bottom-16 md:bottom-10 right-0 z-10 bg-base-300 p-4 shadow-lg">
                 <EmojiPicker onEmojiClick={handleEmojiClick} />
               </div>
             )}
           </div>
 
-          <div className="bg-white p-4">
+          <div className="bg-base-300 p-4 shadow-lg rounded-lg">
             <div className="flex items-center relative">
               <input
-                className="flex-1 min-w-0 border border-gray-300 rounded-full px-4 py-2 mr-2 focus:outline-none"
+                className="flex-1 min-w-0 input input-bordered input-primary mr-2"
                 type="text"
                 placeholder="Type your message..."
                 value={newMessage}
-                onChange={e => setNewMessage(e.target.value)}
+                onChange={e => {
+                  setNewMessage(e.target.value);
+                  handleTyping();
+                }}
                 onKeyPress={e => e.key === 'Enter' && sendMessage()}
               />
               <button
-                className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-6 rounded-full"
+                className="btn btn-primary"
                 onClick={sendMessage}
               >
                 Send
@@ -223,8 +260,8 @@ const ChatApp = () => {
           </div>
         </div>
       ) : (
-        <div className="w-3/4 flex items-center justify-center">
-          <p className="text-center text-gray-500 py-4">Select a contact to start chatting</p>
+        <div className="w-full md:w-3/4 flex items-center justify-center mt-4 md:mt-0">
+          <p className="text-center text-base-content py-4">Select a contact to start chatting</p>
         </div>
       )}
     </div>

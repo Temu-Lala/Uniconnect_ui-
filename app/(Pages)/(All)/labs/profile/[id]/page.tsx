@@ -1,26 +1,52 @@
 "use client";
 import { useRouter } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, MouseEvent } from 'react';
 import axios from 'axios';
 import {
   FaPhone, FaEnvelope, FaLinkedin, FaTimesCircle, FaCommentDots, FaFileAlt, FaFilePdf, FaFileWord, FaFileExcel,
   FaUniversity, FaBuilding, FaSchool, FaChalkboardTeacher
 } from 'react-icons/fa';
 
-const LabProfileDetailPage = ({ params }) => {
+// Define types for the expected data
+interface User {
+  phone: string;
+  email: string;
+  linkedin: string;
+}
+
+interface File {
+  id: string;
+  file_type: string;
+  file: string;
+}
+
+interface Profile {
+  name: string;
+  description: string;
+  user: User;
+  files: File[];
+  campus_profile: string;
+  college_profile: string;
+}
+
+interface Params {
+  id: string;
+}
+
+const LabProfileDetailPage = ({ params }: { params: Params }) => {
   const router = useRouter();
   const { id } = params;
 
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [universityName, setUniversityName] = useState('');
   const [campusName, setCampusName] = useState('');
   const [collegeName, setCollegeName] = useState('');
   const [departmentName, setDepartmentName] = useState('');
   const [showFullScreen, setShowFullScreen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const modalRef = useRef(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (id) {
@@ -28,7 +54,7 @@ const LabProfileDetailPage = ({ params }) => {
     }
   }, [id]);
 
-  const fetchProfile = async (id) => {
+  const fetchProfile = async (id: string) => {
     const token = localStorage.getItem('token');
     try {
       const response = await axios.get(`http://127.0.0.1:8000/lab-profiles/${id}/`, {
@@ -36,18 +62,20 @@ const LabProfileDetailPage = ({ params }) => {
           Authorization: `Bearer ${token}`
         }
       });
-      const profileData = response.data;
+      const profileData: Profile = response.data;
       setProfile(profileData);
       fetchAssociatedProfileNames(profileData);
-    } catch (error) {
-      console.error('Error fetching profile:', error.message);
-      setError(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error fetching profile:', error.message);
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchAssociatedProfileNames = async (profileData) => {
+  const fetchAssociatedProfileNames = async (profileData: Profile) => {
     const token = localStorage.getItem('token');
 
     try {
@@ -78,19 +106,21 @@ const LabProfileDetailPage = ({ params }) => {
         }
       });
       setDepartmentName("Create a Department Profile");
-    } catch (error) {
-      console.error('Error fetching associated profile names:', error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error fetching associated profile names:', error.message);
+      }
     }
   };
 
-  const renderFilePreview = (file) => {
+  const renderFilePreview = (file: File) => {
     const fileType = file.file_type;
     const fileUrl = file.file;
 
     const fileStyle = {
       width: '200px',
       height: '200px',
-      objectFit: 'cover',
+      objectFit: 'cover' as 'cover',
       borderRadius: '8px',
       margin: '10px',
       cursor: 'pointer'
@@ -101,7 +131,7 @@ const LabProfileDetailPage = ({ params }) => {
     } else if (fileType === 'video') {
       return <video key={file.id} src={fileUrl} controls style={fileStyle} onClick={() => handleFullScreen(file)}></video>;
     } else if (fileType === 'document') {
-      const fileExtension = fileUrl.split('.').pop().toLowerCase();
+      const fileExtension = fileUrl.split('.').pop()?.toLowerCase();
       const iconProps = { className: "w-8 h-8 inline-block mr-2 text-gray-400" };
 
       switch (fileExtension) {
@@ -119,7 +149,7 @@ const LabProfileDetailPage = ({ params }) => {
     }
   };
 
-  const handleFullScreen = (file) => {
+  const handleFullScreen = (file: File) => {
     setSelectedFile(file);
     setShowFullScreen(true);
   };
@@ -129,8 +159,8 @@ const LabProfileDetailPage = ({ params }) => {
     setSelectedFile(null);
   };
 
-  const handleClickOutside = (event) => {
-    if (modalRef.current && !modalRef.current.contains(event.target)) {
+  const handleClickOutside = (event: globalThis.MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
       setShowFullScreen(false);
     }
   };
@@ -183,7 +213,7 @@ const LabProfileDetailPage = ({ params }) => {
           <div className="border-t border-gray-700 p-4">
             <h2 className="text-lg font-bold mb-2"><FaFileAlt className="inline-block mr-2" /> Files</h2>
             <div className="flex flex-wrap">
-              {profile.files.map(file => (
+              {profile.files.map((file) => (
                 <div key={file.id} className="mb-4">
                   {renderFilePreview(file)}
                 </div>

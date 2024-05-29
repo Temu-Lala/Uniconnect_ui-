@@ -1,15 +1,12 @@
-// VoiceCall.js
 "use client"
 import React, { useState, useEffect } from 'react';
-import { FaPhone, FaPhoneSlash } from 'react-icons/fa'; // Importing phone icons
+import { FaPhone, FaPhoneSlash } from 'react-icons/fa';
 import AgoraRTC, { IAgoraRTCClient, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng';
 
 const VoiceCall = () => {
   const [client, setClient] = useState<IAgoraRTCClient | null>(null);
   const [isCallActive, setIsCallActive] = useState(false);
-  const [localTracks, setLocalTracks] = useState([]);
-  const agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
-
+  const [localTracks, setLocalTracks] = useState<IMicrophoneAudioTrack[]>([]);
   const appId = 'YOUR_APP_ID';
   const token = 'YOUR_TOKEN'; 
   const channelName = 'YOUR_CHANNEL_NAME';
@@ -19,9 +16,8 @@ const VoiceCall = () => {
       try {
         const agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
         setClient(agoraClient);
-        await agoraClient.initialize({ appId });
+        await agoraClient.join(appId, channelName, token, null);
         console.log('AgoraRTC client initialized');
-        joinChannel(agoraClient);
       } catch (error) {
         console.error('Failed to initialize AgoraRTC client', error);
       }
@@ -35,33 +31,20 @@ const VoiceCall = () => {
         client.leave();
       }
     };
-  }, []);
-
-  const joinChannel = async (client: IAgoraRTCClient) => {
-    try {
-      const uid = await client.join({ token, channel: channelName });
-      console.log('User ' + uid + ' joined channel successfully');
-      setIsCallActive(true);
-    } catch (error) {
-      console.error('Join channel failed', error);
-    }
-  };
-  
+  }, [client]);
 
   const startCall = async () => {
+    if (!client) return;
     try {
-      const microphone: IMicrophoneAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-      if (microphone) {
-        setLocalTracks([microphone]);
-        await client.publish(localTracks);
-        console.log('Local audio track published successfully');
-        setIsCallActive(true);
-      }
+      const microphoneTrack: IMicrophoneAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+      setLocalTracks([microphoneTrack]);
+      await client.publish([microphoneTrack]);
+      console.log('Local audio track published successfully');
+      setIsCallActive(true);
     } catch (error) {
       console.error('Failed to publish local audio track', error);
     }
   };
-  
 
   const handleStartCall = () => {
     if (client && !isCallActive) {

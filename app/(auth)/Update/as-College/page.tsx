@@ -1,12 +1,12 @@
-"use client";
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { Button, Checkbox, DatePicker, Form, Input, Select, Upload, message } from "antd";
-import ImgCrop from "antd-img-crop";
-import TextArea from "antd/es/input/TextArea";
-import { RcFile, UploadFile, UploadProps } from "antd/es/upload";
-import Link from "next/link";
-import moment from "moment";
+'use client';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Button, Checkbox, DatePicker, Form, Input, Select, Upload, message } from 'antd';
+import ImgCrop from 'antd-img-crop';
+import TextArea from 'antd/es/input/TextArea';
+import { RcFile, UploadFile, UploadProps } from 'antd/es/upload';
+import Link from 'next/link';
+import moment from 'moment';
 
 const { Option } = Select;
 
@@ -28,24 +28,24 @@ interface CollegeFormData {
 }
 
 const initialCollegeFormData: CollegeFormData = {
-  name: "",
-  email: "",
-  phone: "",
-  bio: "",
+  name: '',
+  email: '',
+  phone: '',
+  bio: '',
   avatar: null,
   background: null,
   number_of_lectures: 0,
   number_of_departments: 0,
-  establishment_date: "",
-  location: "",
-  university_profile_id: "",
-  campus_profile_id: ""
+  establishment_date: '',
+  location: '',
+  university_profile_id: '',
+  campus_profile_id: '',
 };
 
 const CampusForm: React.FC = () => {
   const [formData, setFormData] = useState<CollegeFormData>(initialCollegeFormData);
   const [universities, setUniversities] = useState<any[]>([]);
-  const [selectedUniversityId, setSelectedUniversityId] = useState<string>("");
+  const [selectedUniversityId, setSelectedUniversityId] = useState<string>('');
   const [campuses, setCampuses] = useState<any[]>([]);
 
   const prefixSelector = (
@@ -59,9 +59,9 @@ const CampusForm: React.FC = () => {
 
   // Fetch universities from API
   useEffect(() => {
-    const authToken = localStorage.getItem("token");
+    const authToken = localStorage.getItem('token');
     axios
-      .get("http://127.0.0.1:8000/university-profiles/", {
+      .get('http://127.0.0.1:8000/university-profiles/', {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
@@ -70,14 +70,14 @@ const CampusForm: React.FC = () => {
         setUniversities(response.data);
       })
       .catch((error) => {
-        console.error("Error fetching universities:", error);
+        console.error('Error fetching universities:', error);
       });
   }, []);
 
   // Fetch campuses when a university is selected
   useEffect(() => {
     if (selectedUniversityId) {
-      const authToken = localStorage.getItem("token");
+      const authToken = localStorage.getItem('token');
       axios
         .get(`http://127.0.0.1:8000/university-profiles/${selectedUniversityId}/campus-profiles/`, {
           headers: {
@@ -88,24 +88,24 @@ const CampusForm: React.FC = () => {
           setCampuses(response.data);
         })
         .catch((error) => {
-          console.error("Error fetching campuses:", error);
+          console.error('Error fetching campuses:', error);
         });
     }
   }, [selectedUniversityId]);
 
   const handleUniversityChange = (value: string) => {
-    console.log("Selected University ID:", value);
+    console.log('Selected University ID:', value);
     setSelectedUniversityId(value);
     setFormData({ ...formData, university_profile_id: value });
     setCampuses([]);
   };
 
   const handleCampusChange = (value: string) => {
-    console.log("Selected Campus ID:", value);
+    console.log('Selected Campus ID:', value);
     setFormData({ ...formData, campus_profile_id: value });
   };
 
-  const onChangeAvatar: UploadProps["onChange"] = ({ fileList }) => {
+  const onChangeAvatar: UploadProps['onChange'] = ({ fileList }) => {
     if (fileList.length > 0) {
       const file: FileType = fileList[0].originFileObj as FileType;
       setFormData({
@@ -115,7 +115,7 @@ const CampusForm: React.FC = () => {
     }
   };
 
-  const onChangeBackground: UploadProps["onChange"] = ({ fileList }) => {
+  const onChangeBackground: UploadProps['onChange'] = ({ fileList }) => {
     if (fileList.length > 0) {
       const file: FileType = fileList[0].originFileObj as FileType;
       setFormData({
@@ -141,7 +141,7 @@ const CampusForm: React.FC = () => {
   };
 
   const handleChange = (
-    e: React.ChangeEvent< HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData({
@@ -151,44 +151,48 @@ const CampusForm: React.FC = () => {
   };
 
   const handleDateChange = (date: moment.Moment | null) => {
-    setFormData({ ...formData, establishment_date: date ? date.format('YYYY-MM-DD') : "" });
+    setFormData({ ...formData, establishment_date: date ? date.format('YYYY-MM-DD') : '' });
   };
 
   const handleSubmit = async () => {
-    console.log("Form Data before submit:", formData);
+    console.log('Form Data before submit:', formData);
 
     const data = new FormData();
-    data.append("university_id", selectedUniversityId);
-    data.append("campus_profile_id", formData.campus_profile_id);
+    data.append('university_id', selectedUniversityId);
+    data.append('campus_profile_id', formData.campus_profile_id);
 
     // Append other fields, excluding university and campus which are already added
     Object.keys(formData).forEach((key) => {
-      if (formData[key as keyof CollegeFormData] !== null && key !== "university_profile_id" && key !== "campus_profile_id") {
+      if (formData[key as keyof CollegeFormData] !== null && key !== 'university_profile_id' && key !== 'campus_profile_id') {
         data.append(key, formData[key as keyof CollegeFormData] as any);
       }
     });
 
-    console.log("FormData to be sent:", Array.from(data.entries()));
+    console.log('FormData to be sent:', Array.from(data.entries()));
 
     try {
-      const authToken = localStorage.getItem("token");
+      const authToken = localStorage.getItem('token');
       if (authToken) {
         const response = await axios.post(
-          "http://127.0.0.1:8000/college_profiles/",
+          'http://127.0.0.1:8000/college_profiles/',
           data,
           {
             headers: {
-              "Content-Type": "multipart/form-data",
+              'Content-Type': 'multipart/form-data',
               Authorization: `Bearer ${authToken}`,
             },
           }
         );
-        message.success("College profile created successfully!");
+        message.success('College profile created successfully!');
         setFormData(initialCollegeFormData);
       }
     } catch (error) {
-      message.error("Failed to create college profile. Please try again.");
-      console.error("Error creating college profile:", error.response?.data || error.message);
+      message.error('Failed to create college profile. Please try again.');
+      if (axios.isAxiosError(error)) {
+        console.error('Error creating college profile:', error.response?.data || error.message);
+      } else {
+        console.error('Unexpected error:', error);
+      }
     }
   };
 
@@ -207,7 +211,7 @@ const CampusForm: React.FC = () => {
               label="University"
               name="university"
               rules={[
-                { required: true, message: "Please select a university!" },
+                { required: true, message: 'Please select a university!' },
               ]}
               className="flex-1"
             >
@@ -225,7 +229,7 @@ const CampusForm: React.FC = () => {
             <Form.Item
               label="Campus"
               name="campus"
-              rules={[{ required: true, message: "Please select campus!" }]}
+              rules={[{ required: true, message: 'Please select campus!' }]}
               className="flex-1"
             >
               <Select
@@ -244,7 +248,7 @@ const CampusForm: React.FC = () => {
           <div className="mb-5">
             <Form.Item
               label="College name"
-              rules={[{ required: true, message: "Please input college name!" }]}
+              rules={[{ required: true, message: 'Please input college name!' }]}
               name="name"
             >
               <Input
@@ -275,7 +279,7 @@ const CampusForm: React.FC = () => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input your phone number!",
+                    message: 'Please input your phone number!',
                   },
                 ]}
               >
@@ -312,10 +316,10 @@ const CampusForm: React.FC = () => {
             <Form.Item
               label="Establishment Date"
               name="establishment_date"
-              rules={[{ required: true, message: "Please select the establishment date!" }]}
+              rules={[{ required: true, message: 'Please select the establishment date!' }]}
             >
               <DatePicker
-                style={{ width: "100%" }}
+                style={{ width: '100%' }}
                 onChange={handleDateChange}
                 value={formData.establishment_date ? moment(formData.establishment_date) : null}
               />
@@ -326,7 +330,7 @@ const CampusForm: React.FC = () => {
             <Form.Item
               label="Location"
               name="location"
-              rules={[{ required: true, message: "Please input the location!" }]}
+              rules={[{ required: true, message: 'Please input the location!' }]}
             >
               <Input
                 type="text"
@@ -350,7 +354,7 @@ const CampusForm: React.FC = () => {
                       formData.avatar
                         ? [
                             {
-                              uid: "1",
+                              uid: '1',
                               name: formData.avatar.name,
                               url: URL.createObjectURL(formData.avatar),
                             },
@@ -361,7 +365,7 @@ const CampusForm: React.FC = () => {
                     onPreview={onPreview}
                     maxCount={1}
                   >
-                    {formData.avatar ? null : "+ Upload Avatar"}
+                    {formData.avatar ? null : '+ Upload Avatar'}
                   </Upload>
                 </ImgCrop>
               </Form.Item>
@@ -377,7 +381,7 @@ const CampusForm: React.FC = () => {
                       formData.background
                         ? [
                             {
-                              uid: "1",
+                              uid: '1',
                               name: formData.background.name,
                               url: URL.createObjectURL(formData.background),
                             },
@@ -388,7 +392,7 @@ const CampusForm: React.FC = () => {
                     onPreview={onPreview}
                     maxCount={1}
                   >
-                    {formData.background ? null : "+ Upload Background"}
+                    {formData.background ? null : '+ Upload Background'}
                   </Upload>
                 </ImgCrop>
               </Form.Item>
@@ -423,7 +427,7 @@ const CampusForm: React.FC = () => {
 
           <div className="mb-5 h-5">
             <Checkbox>
-              By creating a college profile on Uni-connect you're agreeing to our{" "}
+              By creating a college profile on Uni-connect you're agreeing to our{' '}
               <Link href="#" className="text-blue-600">
                 terms and conditions
               </Link>

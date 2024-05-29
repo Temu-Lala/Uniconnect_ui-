@@ -1,12 +1,28 @@
 'use client'; 
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import axios from 'axios';
 
-const PostPage = ({ postId }) => {
-  const [post, setPost] = useState(null);
-  const [comments, setComments] = useState([]);
-  const [commentText, setCommentText] = useState('');
+interface Comment {
+  id: number;
+  body: string;
+  author: string;
+}
+
+interface Post {
+  id: number;
+  title: string;
+  content: string;
+}
+
+interface PostPageProps {
+  postId: number;
+}
+
+const PostPage: React.FC<PostPageProps> = ({ postId }) => {
+  const [post, setPost] = useState<Post | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentText, setCommentText] = useState<string>('');
 
   useEffect(() => {
     const fetchPostAndComments = async () => {
@@ -25,7 +41,7 @@ const PostPage = ({ postId }) => {
           ...departmentPostsResponse.data,
         ];
 
-        setPost(allPosts.find(post => post.id === postId));
+        setPost(allPosts.find(post => post.id === postId) || null);
 
         const commentsResponse = await axios.get(`http://127.0.0.1:8000/posts/${postId}/comments`);
         setComments(commentsResponse.data);
@@ -37,7 +53,7 @@ const PostPage = ({ postId }) => {
     fetchPostAndComments();
   }, [postId]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
       await axios.post(`http://127.0.0.1:8000/posts/${postId}/comments`, {
@@ -72,7 +88,7 @@ const PostPage = ({ postId }) => {
       <form onSubmit={handleSubmit} className="mt-8">
         <textarea
           value={commentText}
-          onChange={(e) => setCommentText(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setCommentText(e.target.value)}
           placeholder="Write your comment..."
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-indigo-500"
         ></textarea>

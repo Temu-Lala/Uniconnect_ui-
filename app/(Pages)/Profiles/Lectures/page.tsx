@@ -14,9 +14,42 @@ import {
   FaClipboardList,
 } from "react-icons/fa";
 
-const LecturerCVDashboard = () => {
-  const [profile, setProfile] = useState(null);
-  const [error, setError] = useState(null);
+// Define the type for the profile object
+type ProfileType = {
+  cover_photo: string;
+  name: string;
+  bio: string;
+  profile_photo: string;
+  job_title: string;
+  phone: string;
+  email: string;
+  linkedin: string;
+  education_background: string;
+  background_description: string;
+  education_background2?: string;
+  background_description2?: string;
+  education_background3?: string;
+  background_description3?: string;
+  languages: string;
+  languages2?: string;
+  languages3?: string;
+  professional_experience: string;
+  professional_experience2?: string;
+  professional_experience3?: string;
+  key_responsibilities: string;
+  key_responsibilities2?: string;
+  key_responsibilities3?: string;
+  project1: string;
+  project_description1: string;
+  project2?: string;
+  project_description2?: string;
+  project3?: string;
+  project_description3?: string;
+};
+
+const LecturerCVDashboard: React.FC = () => {
+  const [profile, setProfile] = useState<ProfileType | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -28,7 +61,7 @@ const LecturerCVDashboard = () => {
     }
   }, []);
 
-  const getUserIdFromToken = (token) => {
+  const getUserIdFromToken = (token: string): string => {
     const base64Url = token.split(".")[1];
     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
     const jsonPayload = decodeURIComponent(
@@ -43,7 +76,7 @@ const LecturerCVDashboard = () => {
     return decodedToken.user_id;
   };
 
-  const fetchProfile = async (userId, token) => {
+  const fetchProfile = async (userId: string, token: string) => {
     try {
       const response = await fetch(`http://127.0.0.1:8000/api/lecturer-cv/by-user/?user=${userId}`, {
         headers: {
@@ -53,7 +86,7 @@ const LecturerCVDashboard = () => {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data: ProfileType = await response.json();
         setProfile(data);
         localStorage.setItem("profileData", JSON.stringify(data));
       } else {

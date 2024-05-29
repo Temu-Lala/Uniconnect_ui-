@@ -1,15 +1,32 @@
-"use client"
-import React, { useState, useEffect } from 'react';
+"use client";
+
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import axios from 'axios';
 import { Button, Modal, Input, Select } from 'antd';
 import Link from 'next/link'; // Import Link from Next.js
 
 const { Option } = Select;
 
-const UserProfile = () => {
-  const [userData, setUserData] = useState(null);
+// Define types for user profile and groups
+interface UserProfileType {
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  gender: string;
+  age: string;
+  group: number | null;
+}
+
+interface GroupType {
+  id: number;
+  name: string;
+}
+
+const UserProfile: React.FC = () => {
+  const [userData, setUserData] = useState<UserProfileType | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [updatedProfile, setUpdatedProfile] = useState({
+  const [updatedProfile, setUpdatedProfile] = useState<UserProfileType>({
     username: '',
     email: '',
     first_name: '',
@@ -18,7 +35,7 @@ const UserProfile = () => {
     age: '',
     group: null,
   });
-  const [groups, setGroups] = useState([]);
+  const [groups, setGroups] = useState<GroupType[]>([]);
 
   useEffect(() => {
     fetchUserData();
@@ -50,12 +67,12 @@ const UserProfile = () => {
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setUpdatedProfile({ ...updatedProfile, [name]: value });
   };
 
-  const handleGroupChange = (value) => {
+  const handleGroupChange = (value: number) => {
     setUpdatedProfile({ ...updatedProfile, group: value });
   };
 
@@ -84,7 +101,7 @@ const UserProfile = () => {
   };
 
   // Function to generate path based on group ID
-  const generatePath = (groupId) => {
+  const generatePath = (groupId: string) => {
     switch (groupId) {
       case 'Campus':
         return '/Register/as-Campus';
@@ -134,7 +151,7 @@ const UserProfile = () => {
         <Input placeholder="Age" name="age" value={updatedProfile.age} onChange={handleInputChange} />
         <Select
           placeholder="Group"
-          value={updatedProfile.group}
+          value={updatedProfile.group ?? undefined} // Ensure the value is a number or undefined
           onChange={handleGroupChange}
         >
           {groups.map(group => (
@@ -142,8 +159,6 @@ const UserProfile = () => {
           ))}
         </Select>
       </Modal>
-
- 
     </div>
   );
 };

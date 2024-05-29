@@ -1,13 +1,19 @@
 // Import necessary components and hooks
-"use client"
+"use client";
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // Use axios for making HTTP requests
 
-// Define the NewsFeed component
-const NewsFeed = () => {
+// Define the types for post and error
+interface Post {
+  id: number;
+  title: string;
+  content: string;
+}
+
+const NewsFeed: React.FC = () => {
   // State variables
-  const [posts, setPosts] = useState([]);
-  const [error, setError] = useState(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch user posts on component mount
   useEffect(() => {
@@ -66,8 +72,13 @@ const NewsFeed = () => {
       setPosts(flattenedPosts);
     } catch (error) {
       // Handle errors
-      console.error('Error fetching user posts:', error.message);
-      setError('Failed to fetch user posts. Please try again later.');
+      if (error instanceof Error) {
+        console.error('Error fetching user posts:', error.message);
+        setError('Failed to fetch user posts. Please try again later.');
+      } else {
+        console.error('Unexpected error:', error);
+        setError('An unexpected error occurred. Please try again later.');
+      }
     }
   };
 

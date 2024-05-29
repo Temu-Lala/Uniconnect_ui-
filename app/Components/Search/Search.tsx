@@ -1,11 +1,39 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { IoSearch } from "react-icons/io5";
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
-const Search = ({ customStyles, ctx }) => {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState({
+interface SearchProps {
+  customStyles?: string;
+  ctx?: string;
+}
+
+interface ResultItem {
+  id: number;
+  avatar?: string;
+  name?: string;
+  title?: string;
+  username?: string;
+}
+
+interface Results {
+  universities: ResultItem[];
+  campuses: ResultItem[];
+  colleges: ResultItem[];
+  departments: ResultItem[];
+  lecturers: ResultItem[];
+  university_posts: ResultItem[];
+  campus_posts: ResultItem[];
+  college_posts: ResultItem[];
+  department_posts: ResultItem[];
+  lecturer_posts: ResultItem[];
+  labs: ResultItem[];
+  users: ResultItem[];
+}
+
+const Search: React.FC<SearchProps> = ({ customStyles = '', ctx = '' }) => {
+  const [query, setQuery] = useState<string>('');
+  const [results, setResults] = useState<Results>({
     universities: [],
     campuses: [],
     colleges: [],
@@ -19,14 +47,14 @@ const Search = ({ customStyles, ctx }) => {
     labs: [],
     users: []
   });
-  const [showResults, setShowResults] = useState(false);
-  const [imageError, setImageError] = useState({});
-  const resultsRef = useRef(null);
+  const [showResults, setShowResults] = useState<boolean>(false);
+  const [imageError, setImageError] = useState<Record<number, boolean>>({});
+  const resultsRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (resultsRef.current && !resultsRef.current.contains(event.target)) {
+    const handleClickOutside = (event: Event) => {
+      if (resultsRef.current && !resultsRef.current.contains(event.target as Node)) {
         setShowResults(false);
       }
     };
@@ -75,11 +103,11 @@ const Search = ({ customStyles, ctx }) => {
     handleSearch();
   }, [query]);
 
-  const handleImageError = (id) => {
+  const handleImageError = (id: number) => {
     setImageError((prevErrors) => ({ ...prevErrors, [id]: true }));
   };
 
-  const handleClick = (type, id) => {
+  const handleClick = (type: string, id: number) => {
     setShowResults(false);
     switch (type) {
       case 'universities':
@@ -132,7 +160,7 @@ const Search = ({ customStyles, ctx }) => {
               placeholder="Search"
               className={`input w-full join-item input-bordered flex-1 ${ctx === "portrait" ? 'rounded-none' : ''}`}
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
               style={{ backgroundColor: '#2d2d2d', borderColor: '#444', color: '#fff' }}
             />
           </div>
@@ -150,10 +178,10 @@ const Search = ({ customStyles, ctx }) => {
       {showResults && (
         <div ref={resultsRef} className="absolute left-0 right-0 mt-2 w-full shadow-lg rounded-lg z-20 max-h-96 overflow-y-auto" style={{ backgroundColor: '#1e1e1e', borderColor: '#444', top: '100%' }}>
           {Object.keys(results).map((key) => (
-            results[key].length > 0 && (
+            results[key as keyof Results].length > 0 && (
               <div key={key} className="border-b" style={{ borderColor: '#444' }}>
                 <h2 className="font-bold p-2" style={{ backgroundColor: '#333', color: '#007acc' }}>{key.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}</h2>
-                {results[key].map((item) => (
+                {results[key as keyof Results].map((item: ResultItem) => (
                   <div
                     key={item.id}
                     className="p-2 hover:bg-gray-700 cursor-pointer flex items-center"

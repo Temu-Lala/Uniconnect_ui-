@@ -6,21 +6,57 @@ import { LiaTimesSolid } from 'react-icons/lia';
 import Image from 'next/image';
 import 'tailwindcss/tailwind.css';
 
-const NewsFeed = ({ params }) => {
+interface Params {
+  id: string;
+}
+
+interface Comment {
+  id: number;
+  author: {
+    Avatar: string;
+    Username: string;
+  };
+  body: string;
+}
+
+interface NewsItem {
+  id: number;
+  ownerName: string;
+  owner: string;
+  title: string;
+  content: string;
+  link: string;
+  created_at: string;
+  date: string;
+  imageUrls: string[];
+  fileUrl: string;
+  likes: number;
+  dislikes: number;
+  shares: number;
+  type: string;
+  showAllComments: boolean;
+  liked: boolean;
+  disliked: boolean;
+  comments: Comment[];
+}
+
+const NewsFeed = ({ params }: { params: Params }) => {
   const router = useRouter();
   const { id } = params;
 
-  const [comments, setComments] = useState({});
-  const [newsItems, setNewsItems] = useState([]);
-  const [error, setError] = useState(null);
+  const [comments, setComments] = useState<{ [key: number]: string }>({});
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [shareLink, setShareLink] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
-  const [showCommentsModal, setShowCommentsModal] = useState({});
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [expandedPost, setExpandedPost] = useState({});
-  const [dropdownOpen, setDropdownOpen] = useState({});
-  const commentsEndRef = useRef(null);
+  const [showCommentsModal, setShowCommentsModal] = useState<{ [key: number]: boolean }>({});
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [expandedPost, setExpandedPost] = useState<{ [key: number]: boolean }>({});
+  const [dropdownOpen, setDropdownOpen] = useState<{ [key: number]: boolean }>({});
+  const commentsEndRef = useRef<HTMLDivElement>(null);
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editedCommentText, setEditedCommentText] = useState<string>('');
 
   useEffect(() => {
     if (id) {
@@ -28,7 +64,7 @@ const NewsFeed = ({ params }) => {
     }
   }, [id]);
 
-  const fetchNewsFeed = async (postId) => {
+  const fetchNewsFeed = async (postId: string) => {
     try {
       const response = await fetch(`http://127.0.0.1:8000/university-posts/${postId}/`);
       if (!response.ok) {
@@ -41,7 +77,7 @@ const NewsFeed = ({ params }) => {
     }
   };
 
-  const formatPostItem = (item) => ({
+  const formatPostItem = (item: any): NewsItem => ({
     id: item.id,
     ownerName: item.university_name || item.campus_name || item.college_name || item.department_name || item.lecturer_name || 'Unknown',
     owner: item.user,
@@ -62,7 +98,19 @@ const NewsFeed = ({ params }) => {
     comments: []
   });
 
-  const toggleComments = async (postId) => {
+  const toggleDropdown = (postId: number) => {
+    setDropdownOpen((prev) => ({ ...prev, [postId]: !prev[postId] }));
+  };
+
+  const handleDropdownOption = (option: string, postId: number) => {
+    console.log(option, postId);
+  };
+
+  const hidePost = (postId: number) => {
+    setNewsItems((prev) => prev.filter(item => item.id !== postId));
+  };
+
+  const toggleComments = async (postId: number) => {
     const postIndex = newsItems.findIndex(item => item.id === postId);
     if (postIndex === -1) return;
 
@@ -95,11 +143,11 @@ const NewsFeed = ({ params }) => {
     }
   };
 
-  const handleCommentChange = (e, postId) => {
+  const handleCommentChange = (e: ChangeEvent<HTMLTextAreaElement>, postId: number) => {
     setComments({ ...comments, [postId]: e.target.value });
   };
 
-  const handleAddComment = async (postId) => {
+  const handleAddComment = async (postId: number) => {
     if (!comments[postId]?.trim()) {
       alert('Comment cannot be empty.');
       return;
@@ -141,7 +189,7 @@ const NewsFeed = ({ params }) => {
     }
   };
 
-  const handleLikePost = async (postId) => {
+  const handleLikePost = async (postId: number) => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -176,7 +224,7 @@ const NewsFeed = ({ params }) => {
     }
   };
 
-  const handleSharePost = async (postId) => {
+  const handleSharePost = async (postId: number) => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -212,6 +260,52 @@ const NewsFeed = ({ params }) => {
     } catch (error) {
       setError('Failed to copy link. Please try again later.');
     }
+  };
+
+  const handleCloseShareModal = () => {
+    setShowShareModal(false);
+  };
+
+  const handleImageClick = (url: string) => {
+    setSelectedImage(url);
+  };
+
+  const handleCloseImageModal = () => {
+    setSelectedImage(null);
+  };
+
+  const handleFileClick = (url: string) => {
+    setSelectedFile(url);
+  };
+
+  const handleCloseFileModal = () => {
+    setSelectedFile(null);
+  };
+
+  const toggleExpandPost = (postId: number) => {
+    setExpandedPost((prev) => ({ ...prev, [postId]: !prev[postId] }));
+  };
+
+  const handleOutsideClick = () => {
+    setShowCommentsModal({});
+  };
+
+  const handleEditComment = (commentId: number, body: string) => {
+    setEditingCommentId(commentId);
+    setEditedCommentText(body);
+  };
+
+  const handleDeleteComment = async (commentId: number, postId: number) => {
+    // Implement delete comment functionality here
+  };
+
+  const handleSaveEditedComment = async (commentId: number) => {
+    // Implement save edited comment functionality here
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+    setEditedCommentText('');
   };
 
   return (
@@ -428,4 +522,3 @@ const NewsFeed = ({ params }) => {
 };
 
 export default NewsFeed;
-

@@ -4,7 +4,6 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import CampusForm from './page';
-import { CampusFormData, initialCampusFormData } from '@/app/types/types';
 
 // Mock axios
 jest.mock('axios');

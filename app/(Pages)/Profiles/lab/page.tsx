@@ -10,9 +10,29 @@ import {
   FaFlask,
 } from "react-icons/fa";
 
-const LabDashboard = () => {
-  const [profile, setProfile] = useState(null);
-  const [error, setError] = useState(null);
+// Define the type for the profile object
+type FileType = {
+  id: number;
+  file: string;
+};
+
+type ProfileType = {
+  cover_photo: string;
+  name: string;
+  description: string;
+  profile_photo: string;
+  establishment_date: string;
+  user: string;
+  university_profile: string;
+  campus_profile: string;
+  college_profile: string;
+  department_profile: string;
+  files: FileType[];
+};
+
+const LabDashboard: React.FC = () => {
+  const [profile, setProfile] = useState<ProfileType | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -24,7 +44,7 @@ const LabDashboard = () => {
     }
   }, []);
 
-  const getUserIdFromToken = (token) => {
+  const getUserIdFromToken = (token: string): string => {
     const base64Url = token.split(".")[1];
     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
     const jsonPayload = decodeURIComponent(
@@ -39,7 +59,7 @@ const LabDashboard = () => {
     return decodedToken.user_id;
   };
 
-  const fetchProfile = async (userId, token) => {
+  const fetchProfile = async (userId: string, token: string) => {
     try {
       const response = await fetch(`http://127.0.0.1:8000/lab-profiles/by-user/?user=${userId}`, {
         headers: {
@@ -49,7 +69,7 @@ const LabDashboard = () => {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data: ProfileType = await response.json();
         setProfile(data);
         localStorage.setItem("profileData", JSON.stringify(data));
       } else {

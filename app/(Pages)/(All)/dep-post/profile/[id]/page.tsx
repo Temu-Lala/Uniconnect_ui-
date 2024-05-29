@@ -34,7 +34,11 @@ interface NewsItem {
   comments: Comment[];
 }
 
-const DepartmentNewsFeed = ({ params }) => {
+interface Params {
+  id: string;
+}
+
+const DepartmentNewsFeed = ({ params }: { params: Params }) => {
   const router = useRouter();
   const { id } = params;
   
@@ -58,7 +62,7 @@ const DepartmentNewsFeed = ({ params }) => {
     }
   }, [id]);
 
-  const fetchDepartmentPost = async (postId) => {
+  const fetchDepartmentPost = async (postId: string) => {
     try {
       const response = await fetch(`http://127.0.0.1:8000/department-posts/${postId}/`);
       if (!response.ok) {
@@ -71,7 +75,7 @@ const DepartmentNewsFeed = ({ params }) => {
     }
   };
 
-  const formatPostItem = (item): NewsItem => ({
+  const formatPostItem = (item: any): NewsItem => ({
     id: item.id,
     ownerName: item.department_name || 'Unknown',
     owner: item.user,
@@ -250,7 +254,7 @@ const DepartmentNewsFeed = ({ params }) => {
       }
 
       const updatedNewsItem = { ...newsItem };
-      if (updatedNewsItem) {
+      if (updatedNewsItem && typeof updatedNewsItem.likes === 'number') {
         updatedNewsItem.liked = !updatedNewsItem.liked;
         updatedNewsItem.likes = updatedNewsItem.liked ? updatedNewsItem.likes + 1 : updatedNewsItem.likes - 1;
         setNewsItem(updatedNewsItem);

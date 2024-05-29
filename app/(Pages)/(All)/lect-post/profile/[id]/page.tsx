@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, ChangeEvent, useRef } from 'react';
+import React, { useState, useEffect, ChangeEvent, useRef, MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaThumbsUp, FaShare, FaEdit, FaCopy, FaDownload, FaComments, FaExpand, FaSearchPlus, FaEllipsisV, FaTrash } from 'react-icons/fa';
 import { LiaTimesSolid } from "react-icons/lia";
@@ -34,7 +34,11 @@ interface NewsItem {
   comments: Comment[];
 }
 
-const LecturerNewsFeed = ({ params }) => {
+interface Params {
+  id: string;
+}
+
+const LecturerNewsFeed = ({ params }: { params: Params }) => {
   const router = useRouter();
   const { id } = params;
   
@@ -58,7 +62,7 @@ const LecturerNewsFeed = ({ params }) => {
     }
   }, [id]);
 
-  const fetchLecturerPost = async (postId) => {
+  const fetchLecturerPost = async (postId: string) => {
     try {
       const response = await fetch(`http://127.0.0.1:8000/lecturer-posts/${postId}/`);
       if (!response.ok) {
@@ -71,7 +75,7 @@ const LecturerNewsFeed = ({ params }) => {
     }
   };
 
-  const formatPostItem = (item): NewsItem => ({
+  const formatPostItem = (item: any): NewsItem => ({
     id: item.id,
     ownerName: item.lecturer_name || 'Unknown',
     owner: item.user,
@@ -252,7 +256,9 @@ const LecturerNewsFeed = ({ params }) => {
       const updatedNewsItem = { ...newsItem };
       if (updatedNewsItem) {
         updatedNewsItem.liked = !updatedNewsItem.liked;
-        updatedNewsItem.likes = updatedNewsItem.liked ? updatedNewsItem.likes + 1 : updatedNewsItem.likes - 1;
+        if (updatedNewsItem.likes !== undefined) {
+          updatedNewsItem.likes = updatedNewsItem.liked ? updatedNewsItem.likes + 1 : updatedNewsItem.likes - 1;
+        }
         setNewsItem(updatedNewsItem);
       }
     } catch (error) {
@@ -352,7 +358,7 @@ const LecturerNewsFeed = ({ params }) => {
     setSelectedFile(null);
   };
 
-  const handleOutsideClick = (event: React.MouseEvent) => {
+  const handleOutsideClick = (event: MouseEvent) => {
     if ((event.target as HTMLElement).classList.contains('modal')) {
       setShowCommentsModal(false);
     }

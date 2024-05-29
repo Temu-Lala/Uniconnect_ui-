@@ -1,23 +1,56 @@
 "use client"
 import { useRouter } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import axios from 'axios';
 import {
   FaPhone, FaEnvelope, FaLinkedin, FaUserFriends, FaGraduationCap, FaBriefcase, FaLanguage, FaProjectDiagram, FaTimesCircle, FaCommentDots
 } from 'react-icons/fa';
 
-const LecturerProfileDetailPage = ({ params }) => {
+interface Params {
+  id: string;
+}
+
+interface Profile {
+  profile_photo: string;
+  avatar: string;
+  name: string;
+  job_title: string;
+  phone: string;
+  email: string;
+  linkedin: string;
+  about: string;
+  education_background: string;
+  background_description: string;
+  education_background2: string;
+  background_description2: string;
+  education_background3: string;
+  background_description3: string;
+  professional_experience: string;
+  professional_experience2: string;
+  professional_experience3: string;
+  project1: string;
+  project_description1: string;
+  project2: string;
+  project_description2: string;
+  project3: string;
+  project_description3: string;
+  languages: string;
+  languages2: string;
+  languages3: string;
+}
+
+const LecturerProfileDetailPage = ({ params }: { params: Params }) => {
   const router = useRouter();
   const { id } = params;
 
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [showModal, setShowModal] = useState(false);
-  const modalRef = useRef(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -31,11 +64,11 @@ const LecturerProfileDetailPage = ({ params }) => {
     }
   }, [id]);
 
-  const fetchProfile = async (id) => {
+  const fetchProfile = async (id: string) => {
     try {
       const response = await axios.get(`http://127.0.0.1:8000/lecturer-cv/${id}/`);
       setProfile(response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching profile:', error.message);
       setError(error.message);
     } finally {
@@ -43,7 +76,7 @@ const LecturerProfileDetailPage = ({ params }) => {
     }
   };
 
-  const checkFollowStatus = async (id, token) => {
+  const checkFollowStatus = async (id: string, token: string) => {
     try {
       const response = await axios.get(`http://127.0.0.1:8000/check-follow-status/lecturer/${id}/`, {
         headers: {
@@ -51,12 +84,12 @@ const LecturerProfileDetailPage = ({ params }) => {
         }
       });
       setIsFollowing(response.data.is_following);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error checking follow status:', error.message);
     }
   };
 
-  const fetchFollowersCount = async (id, token) => {
+  const fetchFollowersCount = async (id: string, token: string) => {
     try {
       const response = await axios.get(`http://127.0.0.1:8000/followers_count/${id}/`, {
         headers: {
@@ -64,7 +97,7 @@ const LecturerProfileDetailPage = ({ params }) => {
         }
       });
       setFollowersCount(response.data.followers_count);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching followers count:', error.message);
     }
   };
@@ -79,7 +112,7 @@ const LecturerProfileDetailPage = ({ params }) => {
       });
       setIsFollowing(true);
       setFollowersCount((prevCount) => prevCount + 1);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error following lecturer:', error.message);
     }
   };
@@ -94,7 +127,7 @@ const LecturerProfileDetailPage = ({ params }) => {
       });
       setIsFollowing(false);
       setFollowersCount((prevCount) => Math.max(prevCount - 1, 0));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error unfollowing lecturer:', error.message);
     }
   };
@@ -107,8 +140,8 @@ const LecturerProfileDetailPage = ({ params }) => {
     setShowModal(false);
   };
 
-  const handleClickOutside = (event) => {
-    if (modalRef.current && !modalRef.current.contains(event.target)) {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
       setShowModal(false);
     }
   };
@@ -157,7 +190,7 @@ const LecturerProfileDetailPage = ({ params }) => {
         </div>
       )}
 
-      {showModal && (
+      {showModal && profile && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
           <div ref={modalRef} className="bg-gray-900 p-6 rounded-lg shadow-lg w-11/12 md:w-3/4 lg:w-1/2 max-h-full overflow-y-auto">
             <div className="relative">

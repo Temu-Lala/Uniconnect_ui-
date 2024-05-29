@@ -79,8 +79,10 @@ const CampusNewsFeed = () => {
       const formattedData = data.map((item: any) => formatPostItem(item, 'campus'));
       setNewsItems(formattedData);
     } catch (error) {
-      console.error('Error fetching news feed:', error.message);
-      setError('Failed to fetch news feed. Please try again later.');
+      if (error instanceof Error) {
+        console.error('Error fetching news feed:', error.message);
+        setError('Failed to fetch news feed. Please try again later.');
+      }
     }
   };
 
@@ -133,8 +135,10 @@ const CampusNewsFeed = () => {
           }
         }, 100);
       } catch (error) {
-        console.error('Error fetching comments:', error.message);
-        setError('Failed to fetch comments. Please try again later.');
+        if (error instanceof Error) {
+          console.error('Error fetching comments:', error.message);
+          setError('Failed to fetch comments. Please try again later.');
+        }
       }
     }
   };
@@ -181,8 +185,10 @@ const CampusNewsFeed = () => {
         }
       }, 100);
     } catch (error) {
-      console.error('Error adding comment:', error.message);
-      setError('Failed to add comment. Please try again later.');
+      if (error instanceof Error) {
+        console.error('Error adding comment:', error.message);
+        setError('Failed to add comment. Please try again later.');
+      }
     }
   };
 
@@ -212,8 +218,10 @@ const CampusNewsFeed = () => {
       setEditedCommentText('');
       fetchNewsFeed();
     } catch (error) {
-      console.error('Error saving edited comment:', error.message);
-      setError('Failed to save edited comment. Please try again later.');
+      if (error instanceof Error) {
+        console.error('Error saving edited comment:', error.message);
+        setError('Failed to save edited comment. Please try again later.');
+      }
     }
   };
 
@@ -233,8 +241,10 @@ const CampusNewsFeed = () => {
 
       toggleComments(postId, type);
     } catch (error) {
-      console.error('Error deleting comment:', error.message);
-      setError('Failed to delete comment. Please try again later.');
+      if (error instanceof Error) {
+        console.error('Error deleting comment:', error.message);
+        setError('Failed to delete comment. Please try again later.');
+      }
     }
   };
 
@@ -274,8 +284,10 @@ const CampusNewsFeed = () => {
 
       setNewsItems(updatedNewsItems);
     } catch (error) {
-      console.error('Error liking post:', error.message);
-      setError('Failed to like post. Please try again later.');
+      if (error instanceof Error) {
+        console.error('Error liking post:', error.message);
+        setError('Failed to like post. Please try again later.');
+      }
     }
   };
 
@@ -306,8 +318,10 @@ const CampusNewsFeed = () => {
 
       fetchNewsFeed();
     } catch (error) {
-      console.error('Error disliking post:', error.message);
-      setError('Failed to dislike post. Please try again later.');
+      if (error instanceof Error) {
+        console.error('Error disliking post:', error.message);
+        setError('Failed to dislike post. Please try again later.');
+      }
     }
   };
 
@@ -339,8 +353,10 @@ const CampusNewsFeed = () => {
       setShareLink(data.shareLink);
       setShowShareModal(true);
     } catch (error) {
-      console.error('Error sharing post:', error.message);
-      setError('Failed to share post. Please try again later.');
+      if (error instanceof Error) {
+        console.error('Error sharing post:', error.message);
+        setError('Failed to share post. Please try again later.');
+      }
     }
   };
 
@@ -349,8 +365,10 @@ const CampusNewsFeed = () => {
       await navigator.clipboard.writeText(shareLink);
       alert('Link copied to clipboard');
     } catch (error) {
-      console.error('Error copying link:', error.message);
-      setError('Failed to copy link. Please try again later.');
+      if (error instanceof Error) {
+        console.error('Error copying link:', error.message);
+        setError('Failed to copy link. Please try again later.');
+      }
     }
   };
 
@@ -539,7 +557,7 @@ const CampusNewsFeed = () => {
         </div>
       )}
       {Object.keys(showCommentsModal).map(postId => (
-        showCommentsModal[postId] && (
+        showCommentsModal[Number(postId)] && (
           <div className="modal modal-open" key={postId} onClick={handleOutsideClick}>
             <div className="modal-box w-11/12 max-w-5xl relative bg-gray-800 text-white" onClick={(e) => e.stopPropagation()}>
               <button className="btn btn-sm btn-circle absolute right-2 top-2 text-white" onClick={() => toggleComments(Number(postId), newsItems.find(item => item.id === Number(postId))!.type)}>

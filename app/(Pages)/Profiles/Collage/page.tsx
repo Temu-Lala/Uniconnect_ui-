@@ -15,9 +15,30 @@ import {
   FaHeartbeat,
 } from "react-icons/fa";
 
+interface Profile {
+  cover_photo: string;
+  name: string;
+  bio: string;
+  profile_photo: string;
+  establishment_date: string;
+  number_of_lectures: number;
+  number_of_departments: number;
+  number_of_campuses: number;
+  number_of_colleges: number;
+  number_of_libraries: number;
+  number_of_laboratories: number;
+  about: string;
+  region: string;
+  city: string;
+  specific_place: string;
+  pobox: string;
+  category: string;
+  health_condition_support: string;
+}
+
 const CollegeDashboard = () => {
-  const [profile, setProfile] = useState(null);
-  const [error, setError] = useState(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -29,7 +50,7 @@ const CollegeDashboard = () => {
     }
   }, []);
 
-  const getUserIdFromToken = (token) => {
+  const getUserIdFromToken = (token: string): number => {
     const base64Url = token.split(".")[1];
     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
     const jsonPayload = decodeURIComponent(
@@ -44,7 +65,7 @@ const CollegeDashboard = () => {
     return decodedToken.user_id;
   };
 
-  const fetchProfile = async (userId, token) => {
+  const fetchProfile = async (userId: number, token: string) => {
     try {
       const response = await fetch(`http://127.0.0.1:8000/api/college-profiles/by-user/?user=${userId}`, {
         headers: {
@@ -54,7 +75,7 @@ const CollegeDashboard = () => {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data: Profile = await response.json();
         setProfile(data);
         localStorage.setItem("profileData", JSON.stringify(data));
       } else {

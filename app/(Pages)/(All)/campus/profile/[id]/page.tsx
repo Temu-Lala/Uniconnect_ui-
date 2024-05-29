@@ -1,26 +1,55 @@
-"use client"
+'use client'
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { FaUniversity, FaMapMarkerAlt, FaRegCalendarAlt, FaUserFriends, FaChalkboardTeacher, FaBuilding, FaBook, FaMicroscope, FaSchool } from 'react-icons/fa';
 
-const CampusProfileDetailPage = ({ params }) => {
+interface Params {
+  id: string;
+}
+
+interface Profile {
+  cover_photo: string;
+  profile_photo: string;
+  name: string;
+  bio: string;
+  number_of_lectures: number;
+  number_of_departments: number;
+  number_of_campuses: number;
+  number_of_colleges: number;
+  link: string;
+  establishment_date: string;
+  region: string;
+  city: string;
+  pobox: string;
+  specific_place: string;
+  university: string;
+  about: string;
+  location: string;
+}
+
+interface RatingAndComment {
+  value: number;
+  comment: string;
+}
+
+const CampusProfileDetailPage = ({ params }: { params: Params }) => {
   const router = useRouter();
   const { id } = params;
 
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
-  const [ratingsAndComments, setRatingsAndComments] = useState([]);
+  const [ratingsAndComments, setRatingsAndComments] = useState<RatingAndComment[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [seeMore, setSeeMore] = useState(false);
   const [showAllComments, setShowAllComments] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [universityName, setUniversityName] = useState('');
-  const modalRef = useRef(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (id) {
@@ -31,7 +60,7 @@ const CampusProfileDetailPage = ({ params }) => {
     }
   }, [id]);
 
-  const fetchProfile = async (id) => {
+  const fetchProfile = async (id: string) => {
     try {
       const response = await axios.get(`http://127.0.0.1:8000/campus-profiles/${id}/`, {
         headers: {
@@ -43,14 +72,15 @@ const CampusProfileDetailPage = ({ params }) => {
         fetchUniversityName(response.data.university);
       }
     } catch (error) {
-      console.error('Error fetching profile:', error.message);
-      setError(error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error fetching profile:', errorMessage);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchUniversityName = async (universityId) => {
+  const fetchUniversityName = async (universityId: string) => {
     try {
       const response = await axios.get(`http://127.0.0.1:8000/university-profiles/${universityId}/`, {
         headers: {
@@ -59,13 +89,13 @@ const CampusProfileDetailPage = ({ params }) => {
       });
       setUniversityName(response.data.name);
     } catch (error) {
-      console.error('Error fetching university name:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error fetching university name:', errorMessage);
     }
   };
 
-  const fetchRatingsAndComments = async (id) => {
+  const fetchRatingsAndComments = async (id: string) => {
     try {
-      const token = localStorage.getItem('token');
       const response = await axios.get(`http://127.0.0.1:8000/campus_rating/?campus_id=${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -73,11 +103,12 @@ const CampusProfileDetailPage = ({ params }) => {
       });
       setRatingsAndComments(response.data);
     } catch (error) {
-      console.error('Error fetching ratings and comments:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error fetching ratings and comments:', errorMessage);
     }
   };
 
-  const fetchFollowersCount = async (id) => {
+  const fetchFollowersCount = async (id: string) => {
     try {
       const response = await axios.get(`http://127.0.0.1:8000/campus_followers_count/${id}/`, {
         headers: {
@@ -86,11 +117,12 @@ const CampusProfileDetailPage = ({ params }) => {
       });
       setFollowersCount(response.data.followers_count);
     } catch (error) {
-      console.error('Error fetching followers count:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error fetching followers count:', errorMessage);
     }
   };
 
-  const checkFollowStatus = async (id) => {
+  const checkFollowStatus = async (id: string) => {
     try {
       const response = await axios.get(`http://127.0.0.1:8000/check-follow-campus-status/campus/${id}/`, {
         headers: {
@@ -99,13 +131,14 @@ const CampusProfileDetailPage = ({ params }) => {
       });
       setIsFollowing(response.data.is_following);
     } catch (error) {
-      console.error('Error checking follow status:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error checking follow status:', errorMessage);
     }
   };
 
   const handleFollow = async () => {
     try {
-      const response = await axios.post(`http://127.0.0.1:8000/follow-campus-profile/${id}/`, null, {
+      await axios.post(`http://127.0.0.1:8000/follow-campus-profile/${id}/`, null, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -113,13 +146,14 @@ const CampusProfileDetailPage = ({ params }) => {
       setIsFollowing(true);
       fetchFollowersCount(id); // Fetch the updated followers count after following
     } catch (error) {
-      console.error('Error following campus:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error following campus:', errorMessage);
     }
   };
 
   const handleUnfollow = async () => {
     try {
-      const response = await axios.post(`http://127.0.0.1:8000/unfollow-campus-profile/${id}/`, null, {
+      await axios.post(`http://127.0.0.1:8000/unfollow-campus-profile/${id}/`, null, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -127,22 +161,22 @@ const CampusProfileDetailPage = ({ params }) => {
       setIsFollowing(false);
       fetchFollowersCount(id); // Fetch the updated followers count after unfollowing
     } catch (error) {
-      console.error('Error unfollowing campus:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error unfollowing campus:', errorMessage);
     }
   };
 
-  const handleRatingChange = (event) => {
+  const handleRatingChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRating(parseInt(event.target.value));
   };
 
-  const handleCommentChange = (event) => {
+  const handleCommentChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setComment(event.target.value);
   };
 
   const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
+      await axios.post(
         'http://127.0.0.1:8000/campus_rating/',
         {
           campus_id: id,
@@ -151,16 +185,17 @@ const CampusProfileDetailPage = ({ params }) => {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         }
       );
-      console.log('Rating and comment added successfully:', response.data);
+      console.log('Rating and comment added successfully');
       setRating(0);
       setComment('');
       fetchRatingsAndComments(id);
     } catch (error) {
-      console.error('Error adding rating and comment:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error adding rating and comment:', errorMessage);
     }
   };
 
@@ -190,8 +225,8 @@ const CampusProfileDetailPage = ({ params }) => {
 
   const latestRatingsAndComments = ratingsAndComments.slice(0, 5);
 
-  const handleClickOutside = (event) => {
-    if (modalRef.current && !modalRef.current.contains(event.target)) {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
       setShowAllComments(false);
       setShowAboutModal(false);
     }
@@ -291,11 +326,11 @@ const CampusProfileDetailPage = ({ params }) => {
             <h2 className="text-lg font-bold mb-2">Location</h2>
             <div className="w-full h-64">
               <iframe
-                src={`https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=${profile.location}`}
+                src={`https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=${profile?.location}`}
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
-                allowFullScreen=""
+                allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
               ></iframe>
@@ -325,7 +360,7 @@ const CampusProfileDetailPage = ({ params }) => {
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
           <div ref={modalRef} className="bg-gray-900 p-6 rounded-lg shadow-lg w-11/12 md:w-3/4 lg:w-1/2 max-h-full overflow-y-auto">
             <h2 className="text-lg font-bold mb-4">About</h2>
-            <p className="text-gray-400">{profile.about}</p>
+            <p className="text-gray-400">{profile?.about}</p>
             <button onClick={() => setShowAboutModal(false)} className="mt-4 btn btn-primary">Close</button>
           </div>
         </div>

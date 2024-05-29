@@ -1,9 +1,29 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+interface University {
+  id: number;
+  name: string;
+}
+
+interface Campus {
+  id: number;
+  name: string;
+}
+
+interface College {
+  id: number;
+  name: string;
+}
+
+interface Department {
+  id: number;
+  name: string;
+}
 
 const NewLabProfileForm = () => {
   const [formData, setFormData] = useState({
@@ -13,13 +33,13 @@ const NewLabProfileForm = () => {
     department_profile: '',
     name: '',
     description: '',
-    files: []
+    files: [] as File[],
   });
 
-  const [universities, setUniversities] = useState([]);
-  const [campuses, setCampuses] = useState([]);
-  const [colleges, setColleges] = useState([]);
-  const [departments, setDepartments] = useState([]);
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [campuses, setCampuses] = useState<Campus[]>([]);
+  const [colleges, setColleges] = useState<College[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
 
   useEffect(() => {
     const fetchUniversities = async () => {
@@ -28,7 +48,7 @@ const NewLabProfileForm = () => {
         const response = await axios.get('http://127.0.0.1:8000/university-profiles/', {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
+            'Authorization': `Bearer ${authToken}`,
           },
         });
         setUniversities(response.data);
@@ -40,7 +60,7 @@ const NewLabProfileForm = () => {
     fetchUniversities();
   }, []);
 
-  const handleUniversityChange = async (e) => {
+  const handleUniversityChange = async (e: ChangeEvent<HTMLSelectElement>) => {
     const universityId = e.target.value;
     setFormData({ ...formData, university_profile: universityId });
 
@@ -49,7 +69,7 @@ const NewLabProfileForm = () => {
       const response = await axios.get(`http://127.0.0.1:8000/university-profiles/${universityId}/campus-profiles/`, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          'Authorization': `Bearer ${authToken}`,
         },
       });
       setCampuses(response.data);
@@ -58,7 +78,7 @@ const NewLabProfileForm = () => {
     }
   };
 
-  const handleCampusChange = async (e) => {
+  const handleCampusChange = async (e: ChangeEvent<HTMLSelectElement>) => {
     const campusId = e.target.value;
     setFormData({ ...formData, campus_profile: campusId });
 
@@ -67,7 +87,7 @@ const NewLabProfileForm = () => {
       const response = await axios.get(`http://127.0.0.1:8000/campus-profiles/${campusId}/college-profiles/`, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          'Authorization': `Bearer ${authToken}`,
         },
       });
       setColleges(response.data);
@@ -76,7 +96,7 @@ const NewLabProfileForm = () => {
     }
   };
 
-  const handleCollegeChange = async (e) => {
+  const handleCollegeChange = async (e: ChangeEvent<HTMLSelectElement>) => {
     const collegeId = e.target.value;
     setFormData({ ...formData, college_profile: collegeId });
 
@@ -85,7 +105,7 @@ const NewLabProfileForm = () => {
       const response = await axios.get(`http://127.0.0.1:8000/college-profiles/${collegeId}/department-profiles/`, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          'Authorization': `Bearer ${authToken}`,
         },
       });
       setDepartments(response.data);
@@ -94,29 +114,29 @@ const NewLabProfileForm = () => {
     }
   };
 
-  const handleDepartmentChange = (e) => {
+  const handleDepartmentChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const departmentId = e.target.value;
     setFormData({ ...formData, department_profile: departmentId });
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileChange = (e) => {
-    const { files } = e.target;
-    setFormData({ ...formData, files: files });
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setFormData({ ...formData, files });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const authToken = localStorage.getItem('token');
-    const userId = parseInt(localStorage.getItem('user_id'), 10); // Ensure user ID is an integer
+    const userId = parseInt(localStorage.getItem('user_id') || '0', 10); // Ensure user ID is an integer
 
     if (authToken) {
       const form = new FormData();
-      form.append('user', userId); // Make sure user is appended as an integer
+      form.append('user', userId.toString()); // Append user as a string
       form.append('university_profile', formData.university_profile);
       form.append('campus_profile', formData.campus_profile);
       form.append('college_profile', formData.college_profile);
@@ -132,7 +152,7 @@ const NewLabProfileForm = () => {
         const response = await axios.post('http://127.0.0.1:8000/lab-profiles/', form, {
           headers: {
             'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${authToken}`
+            'Authorization': `Bearer ${authToken}`,
           },
         });
         console.log('Lab profile created:', response.data);
@@ -143,7 +163,7 @@ const NewLabProfileForm = () => {
           department_profile: '',
           name: '',
           description: '',
-          files: []
+          files: [],
         });
         toast.success('Lab profile created successfully');
       } catch (error) {

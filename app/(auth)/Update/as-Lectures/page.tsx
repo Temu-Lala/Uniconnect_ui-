@@ -1,12 +1,73 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+interface University {
+  id: number;
+  name: string;
+}
+
+interface Campus {
+  id: number;
+  name: string;
+}
+
+interface College {
+  id: number;
+  name: string;
+}
+
+interface Department {
+  id: number;
+  name: string;
+}
+
+interface FormDataType {
+  university_id: string;
+  campus_profile_id: string;
+  college_profile_id: string;
+  department_profile_id: string;
+  avatar: File | null;
+  profile_photo: File | null;
+  name: string;
+  location: string;
+  job_title: string;
+  skills1: string;
+  skills2: string;
+  skills3: string;
+  skills4: string;
+  about: string;
+  phone: string;
+  email: string;
+  linkedin: string;
+  education_background: string;
+  background_description: string;
+  education_background2: string;
+  background_description2: string;
+  education_background3: string;
+  background_description3: string;
+  languages: string;
+  languages2: string;
+  languages3: string;
+  professional_experience: string;
+  professional_experience2: string;
+  professional_experience3: string;
+  key_responsibilities: string;
+  key_responsibilities2: string;
+  key_responsibilities3: string;
+  project1: string;
+  project_description1: string;
+  project2: string;
+  project_description2: string;
+  project3: string;
+  project_description3: string;
+}
+
 const NewLecturerCVProfileForm = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataType>({
     university_id: '',
     campus_profile_id: '',
     college_profile_id: '',
@@ -44,12 +105,13 @@ const NewLecturerCVProfileForm = () => {
     project2: '',
     project_description2: '',
     project3: '',
-    project_description3: ''
+    project_description3: '',
   });
-  const [universities, setUniversities] = useState([]);
-  const [campuses, setCampuses] = useState([]);
-  const [colleges, setColleges] = useState([]);
-  const [departments, setDepartments] = useState([]);
+
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [campuses, setCampuses] = useState<Campus[]>([]);
+  const [colleges, setColleges] = useState<College[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
@@ -59,7 +121,7 @@ const NewLecturerCVProfileForm = () => {
         const response = await axios.get('http://127.0.0.1:8000/university-profiles/', {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
+            'Authorization': `Bearer ${authToken}`,
           },
         });
         setUniversities(response.data);
@@ -71,7 +133,7 @@ const NewLecturerCVProfileForm = () => {
     fetchUniversities();
   }, []);
 
-  const handleUniversityChange = async (e) => {
+  const handleUniversityChange = async (e: ChangeEvent<HTMLSelectElement>) => {
     const universityId = e.target.value;
     setFormData({ ...formData, university_id: universityId });
 
@@ -80,7 +142,7 @@ const NewLecturerCVProfileForm = () => {
       const response = await axios.get(`http://127.0.0.1:8000/university-profiles/${universityId}/campus-profiles/`, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          'Authorization': `Bearer ${authToken}`,
         },
       });
       setCampuses(response.data);
@@ -89,7 +151,7 @@ const NewLecturerCVProfileForm = () => {
     }
   };
 
-  const handleCampusChange = async (e) => {
+  const handleCampusChange = async (e: ChangeEvent<HTMLSelectElement>) => {
     const campusId = e.target.value;
     setFormData({ ...formData, campus_profile_id: campusId });
 
@@ -98,7 +160,7 @@ const NewLecturerCVProfileForm = () => {
       const response = await axios.get(`http://127.0.0.1:8000/campus-profiles/${campusId}/college-profiles/`, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          'Authorization': `Bearer ${authToken}`,
         },
       });
       setColleges(response.data);
@@ -107,7 +169,7 @@ const NewLecturerCVProfileForm = () => {
     }
   };
 
-  const handleCollegeChange = async (e) => {
+  const handleCollegeChange = async (e: ChangeEvent<HTMLSelectElement>) => {
     const collegeId = e.target.value;
     setFormData({ ...formData, college_profile_id: collegeId });
 
@@ -116,7 +178,7 @@ const NewLecturerCVProfileForm = () => {
       const response = await axios.get(`http://127.0.0.1:8000/college-profiles/${collegeId}/department-profiles/`, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          'Authorization': `Bearer ${authToken}`,
         },
       });
       setDepartments(response.data);
@@ -125,35 +187,40 @@ const NewLecturerCVProfileForm = () => {
     }
   };
 
-  const handleDepartmentChange = (e) => {
+  const handleDepartmentChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const departmentId = e.target.value;
     setFormData({ ...formData, department_profile_id: departmentId });
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, files } = e.target;
-    setFormData({ ...formData, [name]: files[0] });
+    if (files && files.length > 0) {
+      setFormData({ ...formData, [name]: files[0] });
+    }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const authToken = localStorage.getItem('token');
     if (authToken) {
       const form = new FormData();
       Object.keys(formData).forEach(key => {
-        form.append(key, formData[key]);
+        const value = (formData as any)[key];
+        if (value !== null) {
+          form.append(key, value);
+        }
       });
 
       try {
         const response = await axios.post('http://127.0.0.1:8000/create-lecturer-cv/', form, {
           headers: {
             'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${authToken}`
+            'Authorization': `Bearer ${authToken}`,
           },
         });
         console.log('Department profile created:', response.data);
@@ -195,7 +262,7 @@ const NewLecturerCVProfileForm = () => {
           project2: '',
           project_description2: '',
           project3: '',
-          project_description3: ''
+          project_description3: '',
         });
         toast.success('Department profile created successfully');
       } catch (error) {

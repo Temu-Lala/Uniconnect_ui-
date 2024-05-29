@@ -1,10 +1,15 @@
-"use client";
+'use client';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
+interface Group {
+  id: number;
+  name: string;
+}
+
 const Register = () => {
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [groups, setGroups] = useState([]);
+  const [selectedOption, setSelectedOption] = useState<string | undefined>(undefined);
+  const [groups, setGroups] = useState<Group[]>([]);
 
   // Fetch groups from the backend when the component mounts
   useEffect(() => {
@@ -49,7 +54,7 @@ const Register = () => {
       <div className="w-full max-w-xl">
         <div className="form-control w-full max-w-xs">
           <select
-            value={selectedOption}
+            value={selectedOption ?? ''}
             onChange={(e) => setSelectedOption(e.target.value)}
             className="select select-bordered w-full max-w-xs"
           >

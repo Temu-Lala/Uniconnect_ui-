@@ -1,16 +1,28 @@
 "use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import Avatar from '../../Components/Avater/Avater';
 
-const UserProfileList = () => {
-  const [userProfiles, setUserProfiles] = useState([]);
-  const [selectedProfile, setSelectedProfile] = useState(null);
+// Define the User Profile Type
+interface UserProfile {
+  id: number;
+  name: string;
+  profile_photo: string;
+  cover_photo: string;
+  gender: string;
+  age: string;
+  phone: string;
+  link: string;
+}
+
+const UserProfileList: React.FC = () => {
+  const [userProfiles, setUserProfiles] = useState<UserProfile[]>([]);
+  const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredProfiles, setFilteredProfiles] = useState([]);
+  const [filteredProfiles, setFilteredProfiles] = useState<UserProfile[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [profilesPerPage] = useState(5);
-  const [zoomedImage, setZoomedImage] = useState(null);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserProfiles = async () => {
@@ -19,11 +31,11 @@ const UserProfileList = () => {
         if (!response.ok) {
           throw new Error('Failed to fetch user profiles');
         }
-        const data = await response.json();
+        const data: UserProfile[] = await response.json();
         setUserProfiles(data);
         setFilteredProfiles(data);
       } catch (error) {
-        console.error('Error fetching user profiles:', error.message);
+        console.error('Error fetching user profiles:', (error as Error).message);
       }
     };
     fetchUserProfiles();
@@ -36,7 +48,7 @@ const UserProfileList = () => {
     setFilteredProfiles(filtered);
   }, [searchQuery, userProfiles]);
 
-  const handleDetailsClick = (profile) => {
+  const handleDetailsClick = (profile: UserProfile) => {
     setSelectedProfile(profile);
     setIsModalOpen(true);
   };
@@ -45,7 +57,7 @@ const UserProfileList = () => {
     setIsModalOpen(false);
   };
 
-  const handleAvatarClick = (imageUrl) => {
+  const handleAvatarClick = (imageUrl: string) => {
     setZoomedImage(imageUrl);
   };
 
@@ -53,7 +65,7 @@ const UserProfileList = () => {
   const indexOfFirstProfile = indexOfLastProfile - profilesPerPage;
   const currentProfiles = filteredProfiles.slice(indexOfFirstProfile, indexOfLastProfile);
 
-  const paginate = pageNumber => setCurrentPage(pageNumber);
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   const handleFindNearbyClick = () => {
     if (navigator.geolocation) {
@@ -65,11 +77,11 @@ const UserProfileList = () => {
             if (!response.ok) {
               throw new Error('Failed to fetch nearby user profiles');
             }
-            const data = await response.json();
+            const data: UserProfile[] = await response.json();
             setUserProfiles(data);
             setFilteredProfiles(data);
           } catch (error) {
-            console.error('Error fetching nearby user profiles:', error.message);
+            console.error('Error fetching nearby user profiles:', (error as Error).message);
           }
         },
         (error) => {
@@ -89,7 +101,7 @@ const UserProfileList = () => {
           type="text"
           placeholder="Search by name"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
         />
       </div>
@@ -167,7 +179,7 @@ const UserProfileList = () => {
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
                   <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <Avatar profilePhoto={selectedProfile.profile_photo} name={selectedProfile.name} />
+                    <Avatar profilePhoto={selectedProfile.profile_photo} name={selectedProfile.name} onClick={closeModal} />
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <h3 className="text-lg leading-6 font-medium text-gray-900">{selectedProfile.name}</h3>
