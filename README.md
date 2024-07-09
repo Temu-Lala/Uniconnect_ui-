@@ -118,4 +118,3 @@ For any questions or feedback, please reach out to us at [temesgendebebe1921@gma
 
 ---
 
-Feel free to customize the above README.md according to your specific requirements and preferences.
