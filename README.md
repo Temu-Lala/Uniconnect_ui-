@@ -1,36 +1,120 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+
+
+# University Social Media Platform
+
+Welcome to the University Social Media Platform! This repository contains the source code for a real-time social media application designed for university communities. The platform includes features such as a chatting system, news posts, notifications, promotions, and hierarchical organization of university entities.
+
+## Features
+
+- **Real-Time Chatting System**: Instant messaging between users using Socket.IO.
+- **News Post System**: Users can create, like, comment, and share posts.
+- **Notifications**: Real-time notifications for various activities on the platform.
+- **Promotions**: Mechanism for promoting events and announcements.
+- **University Hierarchy**: Detailed organizational structure including campus, college, department, lectures, laboratories, and libraries.
+- **Profiles & Ratings**: Users can view profiles of university entities and provide ratings.
+- **Search Functionality**: Advanced search algorithm to find university profiles, departments, and more.
+- **Mobile App**: Mobile application counterpart for seamless user experience.
+
+## Tech Stack
+
+### Frontend
+- **React**
+- **Next.js**
+- **Tailwind CSS**
+- **Ant Design**
+
+### Backend
+- **Python**
+- **Django**
+- **Django REST Framework**
+- **Socket.IO**
+
+### Mobile App
+- Built using the same technology stack, optimized for mobile devices.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js
+- Python 3.x
+- Django
+- npm/yarn
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Clone the repository:**
+    ```sh
+    git clone https://github.com/your-username/university-social-media-platform.git
+    cd university-social-media-platform
+    ```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+2. **Frontend Setup:**
 
-## Learn More
+    Navigate to the `frontend` directory and install dependencies:
+    ```sh
+    cd frontend
+    npm install
+    # or
+    yarn install
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+    Start the development server:
+    ```sh
+    npm run dev
+    # or
+    yarn dev
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Backend Setup:**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+    Navigate to the `backend` directory, create a virtual environment, and install dependencies:
+    ```sh
+    cd ../backend
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    ```
 
-## Deploy on Vercel
+    Run database migrations and start the Django server:
+    ```sh
+    python manage.py migrate
+    python manage.py runserver
+    ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. **Socket.IO Setup:**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+    Make sure the Socket.IO server is running for real-time features:
+    ```sh
+    cd ../socket
+    npm install
+    npm start
+    ```
+
+### Mobile App Setup
+
+For the mobile app setup, refer to the `mobile` directory and follow the instructions in the `README.md` file located there.
+
+## Usage
+
+- Register and log in to create a user account.
+- Explore university entities and their profiles.
+- Engage with news posts by liking, commenting, and sharing.
+- Use the real-time chat feature to communicate with other users.
+- Receive notifications for various activities.
+- Rate and follow/unfollow university entities.
+
+## Contributing
+
+We welcome contributions! Please fork the repository and create a pull request for any enhancements, bug fixes, or new features.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+For any questions or feedback, please reach out to us at [temesgendebebe1921@gmail.com].
+
+---
+
