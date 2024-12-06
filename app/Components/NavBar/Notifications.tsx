@@ -140,77 +140,81 @@ const Notifications = () => {
             </ul>
           </details>
         </div>
-        {notifications.length > 0 && (
-          <ul className="h-96 w-full overflow-y-auto p-1 shadow !flex !flex-col bg-base-100 rounded-box scrollbar-styled">
-            {notifications.map(notification => (
-              <li
-                className="relative group p-2 hover:bg-white hover:bg-opacity-5 rounded-md"
-                key={notification.id}
-                onClick={() => openModal(notification)} // Open modal on click
-              >
-                <div className="flex gap-4 p-1 min-h-12 cursor-pointer">
-                  <div className="w-16 h-16 relative">
-                    <div className="absolute -right-2 -bottom-1 bg-purple-500 w-8 h-8 flex items-center justify-center rounded-full p-1">
-                      {notification.type === "university" ? (
-                        <FaUniversity />
-                      ) : notification.type === "lecture" ? (
-                        <GiTeacher />
-                      ) : (
-                        ""
-                      )}
-                    </div>
-                    <Image
-                      src={notification.imgPath}
-                      width={100}
-                      height={100}
-                      quality={100}
-                      alt="notification avatar"
-                      className="w-full h-full rounded-full"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p>
-                      <span className="text-md font-bold">
-                        {notification.sender}
-                      </span>
-                      <span className="block text-ellipsis overflow-hidden">
-                        {notification.message}
-                      </span>
-                    </p>
-                    <p className="text-sm text-blue-500">
-                      {formatDate(notification.timestamp)}
-                    </p>
-                  </div>
+        {notifications.length > 0 ? 
+        <ul className="h-96 w-full overflow-y-auto p-1 shadow !flex !flex-col bg-base-100 rounded-box scrollbar-styled">
+        {notifications.map(notification => (
+          <li
+            className="relative group p-2 hover:bg-white hover:bg-opacity-5 rounded-md"
+            key={notification.id}
+            onClick={() => openModal(notification)} // Open modal on click
+          >
+            <div className="flex gap-4 p-1 min-h-12 cursor-pointer">
+              <div className="w-16 h-16 relative">
+                <div className="absolute -right-2 -bottom-1 bg-purple-500 w-8 h-8 flex items-center justify-center rounded-full p-1">
+                  {notification.type === "university" ? (
+                    <FaUniversity />
+                  ) : notification.type === "lecture" ? (
+                    <GiTeacher />
+                  ) : (
+                    ""
+                  )}
                 </div>
-                <div className="hidden group-hover:block z-50 absolute right-3 top-1/2 -translate-y-1/2 hover:bg-transparent focus-within:bg-transparent">
-                  <details className="dropdown dropdown-end">
-                    <summary className="btn btn-circle">
-                      <BsThreeDots />
-                    </summary>
-                    <ul className="p-2 shadow menu dropdown-content bg-base-100 rounded-box w-52">
-                      <li>
-                        <a className="flex gap-2">
-                          <span>
-                            <IoMdCheckmark />
-                          </span>
-                          <span> Mark as read</span>
-                        </a>
-                      </li>
-                      <li>
-                        <a className="flex gap-2">
-                          <span>
-                            <FaRegTimesCircle />
-                          </span>
-                          <span> Remove this notification</span>
-                        </a>
-                      </li>
-                    </ul>
-                  </details>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+                <Image
+                  src={notification.imgPath}
+                  width={100}
+                  height={100}
+                  quality={100}
+                  alt="notification avatar"
+                  className="w-full h-full rounded-full"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p>
+                  <span className="text-md font-bold">
+                    {notification.sender}
+                  </span>
+                  <span className="block text-ellipsis overflow-hidden">
+                    {notification.message}
+                  </span>
+                </p>
+                <p className="text-sm text-blue-500">
+                  {formatDate(notification.timestamp)}
+                </p>
+              </div>
+            </div>
+            <div className="hidden group-hover:block z-50 absolute right-3 top-1/2 -translate-y-1/2 hover:bg-transparent focus-within:bg-transparent">
+              <details className="dropdown dropdown-end">
+                <summary className="btn btn-circle">
+                  <BsThreeDots />
+                </summary>
+                <ul className="p-2 shadow menu dropdown-content bg-base-100 rounded-box w-52">
+                  <li>
+                    <a className="flex gap-2">
+                      <span>
+                        <IoMdCheckmark />
+                      </span>
+                      <span> Mark as read</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a className="flex gap-2">
+                      <span>
+                        <FaRegTimesCircle />
+                      </span>
+                      <span> Remove this notification</span>
+                    </a>
+                  </li>
+                </ul>
+              </details>
+            </div>
+          </li>
+        ))}
+      </ul>
+        : 
+        <div className='my-3'>
+          <p>No new notifications.</p>
+        </div>
+        }
       </div>
 
       {/* Modal for selected notification */}

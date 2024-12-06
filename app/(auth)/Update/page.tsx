@@ -49,9 +49,12 @@ const Register = () => {
   };
 
   return (
-    <div className="bg-white h-screen mt-[67px] p-4">
-      <h2>Transform Your account to the next level.</h2>
-      <div className="w-full max-w-xl">
+    // <div className="bg-white h-screen mt-[67px] p-4">
+    //   <h2>Transform Your account to the next level.</h2>
+      
+    // </div>
+
+    <div className="w-full max-w-xl">
         <div className="form-control w-full max-w-xs">
           <select
             value={selectedOption ?? ''}
@@ -59,7 +62,7 @@ const Register = () => {
             className="select select-bordered w-full max-w-xs"
           >
             <option disabled value="">
-              Pick one
+              Update you profile
             </option>
             {/* Render options based on fetched groups */}
             {groups.map((group) => (
@@ -74,7 +77,6 @@ const Register = () => {
           <button className="btn btn-primary mt-4" onClick={handleGoButtonClick}>Go</button>
         )}
       </div>
-    </div>
   );
 };
 

@@ -5,24 +5,38 @@ import Link from "next/link";
 
 interface UniversityData {
   key: number;
+  id: number;
   name: string;
   avatar: string | null;
-  link: string;
+
 }
 
 
 const fetchData = async (
   setUniversityData: React.Dispatch<React.SetStateAction<UniversityData[]>>
 ) => {
+  const token = localStorage.getItem('token');
   try {
-    const response = await axios.get("/files/universityData.json");
-    const fetchedData = response.data.map((item: any) => ({
-      key: item.id,
-      name: item.name,
-      avatar: item.avatar,
-      link: item.link, // Ensure this link is provided by your API
-    }));
-    setUniversityData(fetchedData);
+    const response = await axios.get("http://127.0.0.1:8000/university-profiles/", {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if(response.status == 200){
+      const fetchedData = response.data.map((item: any) => ({
+        key: item.id,
+        id: item.id,
+        name: item.name,
+        avatar: item.profile_photo,
+      }));
+      setUniversityData(fetchedData);
+      
+    } else {
+      console.log("Error fetching universities");
+    }
+    
   } catch (error) {
     console.error("Error fetching data:", error);
   }
@@ -31,6 +45,7 @@ const fetchData = async (
 export default function UniversityPage() {
   const [universityData, setUniversityData] = useState<UniversityData[]>([]);
 
+
   useEffect(() => {
     fetchData(setUniversityData);
   }, []);
@@ -38,12 +53,12 @@ export default function UniversityPage() {
 
 
   return (
-    <div className="">
+    <div className="h-full">
       <table>
         {universityData.map((university) => (
           <tr key={university.key}>
             <td>
-              <Link href={university.link}>
+              <Link href={`/universities/profile/${university.id}`}>
                 <div className="flex w-full p-3 items-center gap-3 rounded-tl-xl rounded-bl-xl hover:bg-white/10 transition-all">
                   <div className="w-12 h-12 rounded-full overflow-hidden">
                     <img

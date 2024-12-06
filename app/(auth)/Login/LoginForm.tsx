@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from "antd";
-import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons'; // Assuming you're using Ant Design icons
+import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons'; 
 import Link from 'next/link';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 
 export interface FormData {
   username: string;
@@ -13,9 +14,10 @@ export interface FormData {
 
 interface LoginFormProps {
   onSubmit: (formData: FormData) => void;
+  loading: boolean;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onSubmit,  loading }) => {
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     username: '',
@@ -96,18 +98,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
             </label>
           </div>
         </div>
-        <a
-          href="#"
-          className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500"
-        >
-          Forgot password?
-        </a>
+        <Link 
+        href="/password/reset-password">
+          <p className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">
+            Forgot password?
+          </p>
+        </Link>
       </div>
       <button
         type="submit"
-        className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+        disabled={loading}
+        className="flex align-center gap-2 justify-center w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
       >
-        Sign in
+        {
+          loading ? (
+            <><AiOutlineLoading3Quarters className="w-4 h-4 animate-spin mr-2" /> Sigining...</>
+          ) : ("Sign in")
+        }
       </button>
       <p className="text-sm font-light text-gray-500 dark:text-gray-400">
         Don’t have an account yet?{" "}

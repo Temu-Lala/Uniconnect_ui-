@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link"; 
 import {
   FaUniversity,
   FaChalkboardTeacher,
@@ -14,6 +15,7 @@ import {
   FaClipboardList,
   FaHeartbeat,
 } from "react-icons/fa";
+import { Button } from "antd";  // Import Ant Design's Button
 
 // Define the type for the profile object
 type ProfileType = {
@@ -40,6 +42,7 @@ type ProfileType = {
 const UniversityDashboard: React.FC = () => {
   const [profile, setProfile] = useState<ProfileType | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showOptions, setShowOptions] = useState(false); // State for toggling options
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -87,6 +90,10 @@ const UniversityDashboard: React.FC = () => {
     }
   };
 
+  const toggleOptions = () => {
+    setShowOptions(!showOptions);
+  };
+
   if (error) {
     return <div>{error}</div>;
   }
@@ -104,22 +111,48 @@ const UniversityDashboard: React.FC = () => {
             alt="Cover Photo"
             className="w-full h-64 object-cover"
           />
+          <div className="absolute top-4 right-4">
+            <button onClick={toggleOptions} className="text-white text-2xl">
+              &#x22EE;
+            </button>
+            {showOptions && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg">
+                <Link href="../Components/Updates/University/uni_update/"> {/* Update profile page */}
+                  <button
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                  >
+                    Update Profile
+                  </button>
+                </Link>
+                <Link href="../Components/Updates/University/uni-delete/"> {/* Delete profile page */}
+                  <button
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                  >
+                    Delete Profile
+                  </button>
+                </Link>
+              </div>
+            )}
+          </div>
           <div className="absolute bottom-0 left-0 p-4 bg-black bg-opacity-50 text-white">
             <h1 className="text-2xl font-bold">{profile.name}</h1>
             <p className="text-sm">{profile.bio}</p>
           </div>
         </div>
         <div className="p-4">
-          <div className="flex items-center space-x-4 mb-4">
-            <img
-              src={profile.profile_photo}
-              alt="Profile Photo"
-              className="w-24 h-24 object-cover rounded-full"
-            />
-            <div>
-              <h2 className="text-xl font-bold text-white">{profile.name}</h2>
-              <p className="text-gray-400">{profile.establishment_date}</p>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-4">
+              <img
+                src={profile.profile_photo}
+                alt="Profile Photo"
+                className="w-24 h-24 object-cover rounded-full"
+              />
+              <div>
+                <h2 className="text-xl font-bold text-white">{profile.name}</h2>
+                <p className="text-gray-400">{profile.establishment_date}</p>
+              </div>
             </div>
+            <Button type="primary" href="/News/createnews/">Create Post</Button> {/* Create Post Button */}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="flex items-center space-x-3 p-4 bg-gray-700 rounded-lg shadow">

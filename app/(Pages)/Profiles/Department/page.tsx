@@ -14,7 +14,7 @@ import {
   FaClipboardList,
   FaHeartbeat,
 } from "react-icons/fa";
-
+import Link from "next/link";
 interface Profile {
   cover_photo: string;
   name: string;
@@ -32,6 +32,7 @@ interface Profile {
 const DepartmentDashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showOptions, setShowOptions] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -79,6 +80,10 @@ const DepartmentDashboard = () => {
     }
   };
 
+  const toggleOptions = () => {
+    setShowOptions(!showOptions);
+  };
+
   if (error) {
     return <div>{error}</div>;
   }
@@ -96,6 +101,29 @@ const DepartmentDashboard = () => {
             alt="Cover Photo"
             className="w-full h-64 object-cover"
           />
+          <div className="absolute top-4 right-4">
+            <button onClick={toggleOptions} className="text-white text-2xl">
+              &#x22EE;
+            </button>
+            {showOptions && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg">
+                <Link href="../Components/Updates/department/dep-update/"> {/* Update profile page */}
+                  <button
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                  >
+                    Update Profile
+                  </button>
+                </Link>
+                <Link href="../Components/Updates/Campus/dep-delete/"> {/* Delete profile page */}
+                  <button
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                  >
+                    Delete Profile
+                  </button>
+                </Link>
+              </div>
+            )}
+          </div>
           <div className="absolute bottom-0 left-0 p-4 bg-black bg-opacity-50 text-white">
             <h1 className="text-2xl font-bold">{profile.name}</h1>
             <p className="text-sm">{profile.bio}</p>

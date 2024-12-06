@@ -1,20 +1,24 @@
 "use client";
 
 // import React, { useState, ChangeEvent, FormEvent } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/app/contexts/AuthContext";
+// import { useAuth } from "@/app/contexts/AuthContext";
 import LoginForm, { FormData } from "./LoginForm";
 import Image from "next/image";
 import Logo from "@/app/Components/NavBar/Logo";
+import { toast } from "sonner";
 
 
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setAuthenticated } = useAuth();
+  // const { setAuthenticated } = useAuth();
+  const [ isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleSubmit = async (formData: FormData) => {
     // Explicitly type formData with FormData interface
+    setIsLoading(true)
     try {
       const response = await fetch("http://127.0.0.1:8000/login/", {
         method: "POST",
@@ -26,14 +30,18 @@ export default function LoginPage() {
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.token);
-        setAuthenticated(true);
+        // setAuthenticated(true);
         checkUserAssociation(); // Redirect after successful login
+        toast.success("Logged in sucessfully!");
       } else {
+        toast.error("Login failed")
         throw new Error("Login failed");
       }
     } catch (error) {
       console.error("Error:", error);
       // Handle error (e.g., display error message to the user)
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -41,7 +49,7 @@ export default function LoginPage() {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        router.push('/login'); // Redirect to login if token is not available
+        router.replace('/Login'); // Redirect to login if token is not available
         return;
       }
 
@@ -55,25 +63,25 @@ export default function LoginPage() {
         const data = await response.json();
         switch (data.profile_type) {
           case 'university':
-            router.push('/Profiles/Universty/');
+            router.replace('/Profiles/Universty/');
             break;
           case 'campus':
-            router.push('/Profiles/Campus/');
+            router.replace('/Profiles/Campus/');
             break;
           case 'college':
-            router.push('/Profiles/Collage/');
+            router.replace('/Profiles/Collage/');
             break;
           case 'department':
-            router.push('/Profiles/Department/');
+            router.replace('/Profiles/Department/');
             break;
           case 'lecturer':
-            router.push('/Profiles/Lectures/');
+            router.replace('/Profiles/Lectures/');
             break;
             case 'labs':
-              router.push('/Profiles/lab/');
+              router.replace('/Profiles/lab/');
               break;
           default:
-            router.push('/');
+            router.replace('/');
             break;
         }
       } else {
@@ -98,7 +106,7 @@ export default function LoginPage() {
               <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
                 Sign in to your account
               </h1>
-              <LoginForm onSubmit={handleSubmit} />{" "}
+              <LoginForm onSubmit={handleSubmit} loading={isLoading} />{" "}
             </div>
           </div>
         </div>

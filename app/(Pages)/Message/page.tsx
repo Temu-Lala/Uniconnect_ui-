@@ -3,6 +3,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { MdEmojiEmotions } from 'react-icons/md';
+import { PhoneOutlined, PhoneFilled } from '@ant-design/icons';
+import { Button } from 'antd';
+import AgoraRTC, { IAgoraRTCClient, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng';
 
 interface Contact {
   id: number;
@@ -111,6 +114,67 @@ const ChatApp: React.FC = () => {
   const authToken = localStorage.getItem('token');
   const senderId = authToken ? JSON.parse(atob(authToken.split('.')[1])).user_id : null;
 
+  const [client, setClient] = useState<IAgoraRTCClient | null>(null);
+  const [isCallActive, setIsCallActive] = useState(false);
+  const [localTracks, setLocalTracks] = useState<IMicrophoneAudioTrack[]>([]);
+  const appId = 'YOUR_APP_ID';
+  const token = 'YOUR_TOKEN'; 
+  const channelName = 'YOUR_CHANNEL_NAME';
+
+  useEffect(() => {
+    const initializeAgora = async () => {
+      try {
+        const agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+        setClient(agoraClient);
+        await agoraClient.join(appId, channelName, token, null);
+        console.log('AgoraRTC client initialized');
+      } catch (error) {
+        console.error('Failed to initialize AgoraRTC client', error);
+      }
+    };
+
+    initializeAgora();
+
+    return () => {
+      if (client) {
+        client.removeAllListeners();
+        client.leave();
+      }
+    };
+  }, [client]);
+
+  const startCall = async () => {
+    if (!client) return;
+    try {
+      const microphoneTrack: IMicrophoneAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+      setLocalTracks([microphoneTrack]);
+      await client.publish([microphoneTrack]);
+      console.log('Local audio track published successfully');
+      setIsCallActive(true);
+    } catch (error) {
+      console.error('Failed to publish local audio track', error);
+    }
+  };
+
+  const handleStartCall = () => {
+    if (client && !isCallActive) {
+      startCall();
+    }
+  };
+
+  const handleEndCall = () => {
+    if (client && isCallActive) {
+      localTracks.forEach(track => track.close());
+      client.unpublish(localTracks).then(() => {
+        console.log('Local tracks unpublished successfully');
+        setIsCallActive(false);
+        setLocalTracks([]);
+      }).catch(error => {
+        console.error('Failed to unpublish local tracks', error);
+      });
+    }
+  };
+
   const fetchMessages = async (recipientId: number) => {
     try {
       const response = await axios.get<Message[]>(`http://127.0.0.1:8000/messages/user_messages/?recipient_id=${recipientId}&sender_id=${senderId}`, {
@@ -194,7 +258,7 @@ const ChatApp: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row pt-40 bg-base-100 text-base-content min-h-screen">
+    <div className="flex  pt-10 flex-col md:flex-row bg-base-100 text-base-content min-h-screen">
       <ContactList onContactSelect={handleContactSelect} />
 
       {selectedContact ? (
@@ -206,6 +270,13 @@ const ChatApp: React.FC = () => {
                 <button onClick={() => setEmojiPickerVisible(!emojiPickerVisible)}>
                   <MdEmojiEmotions />
                 </button>
+                <Button
+                  type="primary"
+                  shape="circle"
+                  icon={isCallActive ? <PhoneFilled /> : <PhoneOutlined />}
+                  onClick={isCallActive ? handleEndCall : handleStartCall}
+                  className="ml-2"
+                />
               </div>
             </div>
 

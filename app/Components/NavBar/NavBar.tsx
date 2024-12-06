@@ -1,12 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { BsBell } from "react-icons/bs";
 import { IoChatbubbleEllipsesOutline, IoHomeOutline } from "react-icons/io5";
 import { CiLogin } from "react-icons/ci";
 import { PiNewspaper } from "react-icons/pi";
-import { useAuth } from "@/app/contexts/AuthContext";
+import { useAuthContext } from "@/app/contexts/AuthContext";
 
 import Link from "next/link";
 import Logo from "./Logo";
@@ -16,12 +16,47 @@ import ProfileDropdown from "./ProfileDropdown";
 import Search from "../Search/Search";
 import SideBar from "./SideBar";
 import ThemeToggler from "../ThemeToggler/ThemeToggler";
+import { toast } from "sonner";
+import Register from "@/app/(auth)/Update/page";
 
+interface Notification {
+  id: number;
+  recipient: number;
+  sender: string;
+  message: string;
+  type: string;
+  imgPath: string;
+  timestamp: string;
+}
 const NavBar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const [notificationCount, setNotificationCount] = useState<number>(0);
+  const { user, isLoggedIn, logout } = useAuthContext();
   const router = useRouter();
 
-  const  isAuthenticated  = true;
+
+  const getNotificationCount = async () => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await axios.get("http://127.0.0.1:8000/notifications/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }); 
+
+      if (response.status === 200) {
+        const userNotifications = response.data.filter((notification: Notification) => notification.recipient === user?.id);
+        setNotificationCount(userNotifications.length);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getNotificationCount();
+  }, [notificationCount]);
 
   const handleLogin = () => {
     router.push("/Login");
@@ -42,35 +77,6 @@ const NavBar = () => {
     document.getElementById("menu-checkbox")?.click();
   };
 
-  const axiosInstance = axios.create({
-    withCredentials: true, // Include cookies in cross-origin requests
-  });
-  const handleLogout = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      console.log(token);
-      if (!token) {
-        throw new Error("No token found"); // Handle case where token is not available
-      }
-  
-      const response = await axios.post("http://127.0.0.1:8000/logout/", null, {
-        headers: {
-          Authorization: `Bearer ${token}`, // Include token in the Authorization header
-        },
-      });
-  
-      if (response.status === 200) {
-        localStorage.removeItem("token"); // Remove token from localStorage
-        router.push("/login"); // Redirect to login page after successful logout
-      } else {
-        throw new Error("Logout failed"); // Handle case where logout request fails
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      // Handle error (e.g., display error message to the user)
-    }
-  };
-  
 
   return (
     <>
@@ -82,7 +88,7 @@ const NavBar = () => {
         </div>
 
         {/* Center navigation link icons - hidden on small screens */}
-        {isAuthenticated && (
+        {isLoggedIn && (
           <div className="hidden sm:flex gap-8 flex-grow flex-1 justify-center">
             <SearchModal />
 
@@ -92,14 +98,14 @@ const NavBar = () => {
               </Link>
             </div>
 
-            <div className="tooltip tooltip-bottom" data-tip="News">
+            <div className="tooltip tooltip-bottom" data-tip="Posts">
               <Link href="/News" className="btn btn-ghost btn-circle">
                 <PiNewspaper className="text-2xl cursor-pointer" />
               </Link>
             </div>
 
             <div className="tooltip tooltip-bottom" data-tip="Message">
-              <Link href="/message" className="btn btn-ghost btn-circle">
+              <Link href="/Message" className="btn btn-ghost btn-circle">
                 <IoChatbubbleEllipsesOutline className="text-2xl cursor-pointer" />
               </Link>
             </div>
@@ -115,18 +121,23 @@ const NavBar = () => {
                   data-tip="Notification"
                 >
                   <BsBell className="text-2xl" />
-                  <span className="badge badge-sm indicator-item bg-blue-600 text-white">
-                    5
-                  </span>
+                  {notificationCount > 0 ? (
+                    <span className="badge badge-sm indicator-item bg-blue-600 text-white">
+                      {notificationCount}
+                    </span>
+                  ) : (
+                    <></>
+                  )}
                 </div>
               </div>
               <Notifications />
             </div>
+            <Register />
           </div>
         )}
 
         {/* if user is not logged in */}
-        {!isAuthenticated && (
+        {!isLoggedIn && (
           <div>
             <button
               className="btn !min-h-8 h-10 bg-blue-600 text-white px-8"
@@ -141,7 +152,7 @@ const NavBar = () => {
               </Link>
             </div>
 
-            <div className="tooltip tooltip-bottom" data-tip="News">
+            <div className="tooltip tooltip-bottom" data-tip="Posts">
               <Link href="/News" className="btn btn-ghost btn-circle">
                 <PiNewspaper className="text-2xl cursor-pointer" />
               </Link>
@@ -150,7 +161,7 @@ const NavBar = () => {
         )}
 
         {/* Right Profile Dropdown */}
-        {isAuthenticated && <ProfileDropdown handler={handleLogout} />}
+        {isLoggedIn && <ProfileDropdown />}
 
         {/* Menu Icon for Small Screens */}
         <button className="flex z-[9999] sm:hidden">
